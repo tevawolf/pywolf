@@ -1,0 +1,38 @@
+.voice_window_common {
+    border-radius: 5px; padding:10px 5px 10px 5px;
+}
+
+.voice_window_system {
+    color:#EEEEEE;
+    border: solid 1px #EEEEEE;
+    background: linear-gradient(135deg, #333333 0%, #333333 100%);
+    border-radius: 0px;
+}
+
+.voice_window_normal {
+    background: linear-gradient(135deg, #FFFFFF 0%, #EEEEEE 100%);
+    color:#000000;
+    min-height:70px;
+    width: 350px;
+}
+
+.voice_window_wolf {
+    background: linear-gradient(135deg, #d32a2a 25%, #000000 100%);
+    color:#ffffff;
+    min-height:70px;
+    width: 350px;
+}
+
+.voice_window_self {
+    background: linear-gradient(135deg, #DDDDDD 25%, #555555 100%);
+    color:#000000;
+    min-height:70px;
+    width: 350px;
+}
+
+.voice_window_grave {
+    background: linear-gradient(135deg, #7eb1d6 0%, #5f8aaa 41%, #000000 100%);
+    color:#ffffff;
+    min-height:70px;
+    width: 350px;
+}

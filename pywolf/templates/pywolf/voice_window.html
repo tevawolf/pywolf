@@ -1,0 +1,22 @@
+        {# 発言種別によって、窓の表示を変える #}
+        {% if voice.voice_type.id != VOICE_TYPE_ID.system %}
+            <dir style="display:table;">
+                <div style="display: table-cell; width:90px;">
+                    <img src="/static/pywolf/chips{{voice.village_participant.chip.image_file_path}}" />
+                </div>
+                <div style="display: table-cell; vertical-align:top;">
+                    <dir style="font-size:11px;"><a href="">{{ voice.voice_type.voice_type_symbol }}{{ voice.voice_number }}</a>:{{ voice.village_participant.character_name }}</dir>
+                    {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}<dir class="voice_window_common voice_window_normal">
+                    {% elif voice.voice_type.id == VOICE_TYPE_ID.wolf %}<dir class="voice_window_common voice_window_wolf">
+                    {% elif voice.voice_type.id == VOICE_TYPE_ID.self %}<dir class="voice_window_common voice_window_self">
+                    {% elif voice.voice_type.id == VOICE_TYPE_ID.grave %}<dir class="voice_window_common voice_window_grave">
+                    {% endif %}
+                        {{ voice.voice | linebreaksbr }}
+                    </dir>
+                    <dir style="font-size:10px; text-align:right;">{{ voice.voice_datetime }}</dir>
+                </dir>
+        {% else %}
+            <dir style="width:480px;">
+                <dir class="voice_window_common voice_window_system">{{ voice.voice | linebreaksbr }}</dir>
+        {% endif %}
+            </dir>

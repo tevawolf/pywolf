@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'pywolf/standard.css' %}" />
+    <link rel="stylesheet" href="{% static 'pywolf/voice_window.css' %}" />
+    <script>
+        function cancel_voice() {
+            history.back();
+        }
+    </script>
+</head>
+<body>
+    <div>この内容でよろしいですか？</div>
+    <dir style="display:table;">
+        <div style="display: table-cell; width:90px;">
+            <img src="/static/pywolf/chips{{chip_pass}}" />
+        </div>
+        <div style="display: table-cell; vertical-align:top;">
+        {% if voice_type == VOICE_TYPE_ID_NORMAL %}<dir class="voice_window_common voice_window_normal">
+        {% elif voice_type == VOICE_TYPE_ID_WOLF %}<dir class="voice_window_common voice_window_wolf">
+        {% elif voice_type == VOICE_TYPE_ID_SELF %}<dir class="voice_window_common voice_window_self">
+        {% elif voice_type == VOICE_TYPE_ID_GRAVE %}<dir class="voice_window_common voice_window_grave">
+        {% endif %}
+              {{ voice | linebreaksbr }}
+            </div>
+        </dir>
+    </dir>
+    <form method="post" name="confirm" action="{% url 'pywolf:voice' village_no day_no %}">
+        {% csrf_token %}
+        <input type="hidden" name="voice" value="{{ voice }}"/>
+        <input type="hidden" name="voice_type" value="{{ voice_type }}"/>
+        <input type="submit" value="OK"/>
+        <input type="button" name="cancel" value="取り消し" onclick="cancel_voice();"/>
+    </form>
+</body>
+</html>

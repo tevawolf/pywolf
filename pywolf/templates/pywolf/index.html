@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>蛇狼独立領</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'pywolf/standard.css' %}" />
+</head>
+<body>
+{% if pl_list %}
+    現在存在するアカウントの一覧
+    <ul>
+    {% for pl in pl_list %}
+        <li>{{ pl.id_view }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No id are available.</p>
+{% endif %}
+{% if village_list %}
+    <div>現在進行中の村</div>
+    <ul>
+    {% for village in village_list %}
+        <li><a href="{% url 'pywolf:village' village.village_no 0 %}">{{ village.village_name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No village are available.</p>
+{% endif %}
+</body>
+</html>

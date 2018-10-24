@@ -1,0 +1,49 @@
+body {
+    color:              #ffffff;
+    background-color:   ;
+    background: linear-gradient(to bottom, #7c7c7c 0%,#000000 100%);
+    font-size:          12px;
+    width:  500px;
+    margin: 0 auto;
+}
+dir {
+	padding:0px;
+	margin:5px;
+}
+h1 {
+    font-size:  14px;
+}
+h2 {
+    font-size:  12px;
+}
+a {
+    color:              #FF8C00;
+}
+input, select {
+    font-family:
+               YuGothicM,        /* Windows8.1以上は游ゴシック */
+               YuGothic,         /* Macの游ゴシック */
+               Meiryo;           /* 游ゴシックが入っていないWindows */
+    font-size: 12px;
+    border-radius:5px;
+}
+input[type="button"], input[type="submit"]{
+    border-color: #0B6138;
+    background-color: #088A4B;
+}
+textarea.voice {
+    font-family:
+               YuGothicM,        /* Windows8.1以上は游ゴシック */
+               YuGothic,         /* Macの游ゴシック */
+               Meiryo;           /* 游ゴシックが入っていないWindows */
+    font-size: 12px;
+    border:none;
+    border-radius:10px;
+    box-shadow: none;
+    padding: 2px 8px;
+    transition-duration:0.25s;  /* アニメーション速度 */
+}
+
+textarea.voice:focus, textarea.voice:hover {
+    border: solid 1.5px #0000dd !important;  /* 枠線が浮き出る */
+}
