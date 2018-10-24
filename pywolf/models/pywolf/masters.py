@@ -2,7 +2,7 @@ from django.db import models
 
 
 class MPosition(models.Model):
-    '''役職マスタ'''
+    """役職マスタ"""
     position_name = models.CharField(max_length=100)  # 役職名称
     CAMP_CLASS = (
         (1, "村人"),
@@ -18,44 +18,62 @@ class MPosition(models.Model):
     commentary = models.TextField()  # 説明
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "役職"
+        verbose_name_plural = "役職マスタ"
+
     def __str__(self):
         return self.position_name
 
 
 class MOrganizationSet(models.Model):
-    '''編成セットマスタ'''
+    """編成セットマスタ"""
     organization_set_name = models.CharField(max_length=100)  # 編成セット名称
     participant_number = models.SmallIntegerField()  # 参加者数
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "編成セット"
+        verbose_name_plural = "編成セットマスタ"
+
+    def __str__(self):
+        return self.organization_set_name
+
 
 class MOrganization(models.Model):
-    '''編成マスタ'''
+    """編成マスタ"""
     organization = models.ForeignKey(MOrganizationSet, on_delete=models.CASCADE)  # 編成セット
     sequence_number = models.SmallIntegerField(default=0)  # 連番
     position_id = models.ForeignKey(MPosition, on_delete=models.PROTECT)  # 役職ID
     number = models.SmallIntegerField()  # 人数
 
     class Meta:
-        unique_together=(("organization", "sequence_number"))
+        verbose_name = "編成"
+        verbose_name_plural = "編成マスタ"
+        unique_together = ("organization", "sequence_number")
 
 
 VOICE_TYPE_ID = {"normal": 1, "wolf": 2, "self": 3, "system": 4, "grave": 5, }
 
+
 class MVoiceType(models.Model):
-    '''発言種別マスタ'''
+    """発言種別マスタ"""
     voice_type_name = models.CharField(max_length=100)  # 発言種別名称
     voice_type_symbol = models.CharField(max_length=10, blank=True)  # 発言種別記号（例：人狼:*、独り言：-）
     prologue_speech_enable_flg = models.BooleanField(default=False)  # プロローグ発言可否フラグ
     commentary = models.TextField(blank=True)  # 説明
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "発言種別"
+        verbose_name_plural = "発言種別マスタ"
+
     def __str__(self):
         return self.voice_type_name
 
 
 class MPositionVoiceSetting(models.Model):
-    '''役職別発言設定マスタ'''
+    """役職別発言設定マスタ"""
     position = models.ForeignKey(MPosition, on_delete=models.CASCADE)  # 役職
     voice_type = models.ForeignKey(MVoiceType, on_delete=models.CASCADE)  # 発言種別
     SPEECH_HEAR_MODE = (
@@ -68,19 +86,28 @@ class MPositionVoiceSetting(models.Model):
     commentary = models.TextField(blank=True)  # 説明
 
     class Meta:
-        unique_together=(("position", "voice_type"))
+        verbose_name = "役職別発言設定"
+        verbose_name_plural = "役職別発言設定マスタ"
+        unique_together = ("position", "voice_type")
 
 
 class MVoiceSettingSet(models.Model):
-    '''発言設定セットマスタ'''
+    """発言設定セットマスタ"""
     voice_type_set_name = models.CharField(max_length=100)  # 発言設定セット名称
     commentary = models.TextField(blank=True)  # 説明
     display_order = models.IntegerField()  # 並び順
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "発言設定セット"
+        verbose_name_plural = "発言設定セットマスタ"
+
+    def __str__(self):
+        return self.voice_type_set_name
+
 
 class MVoiceSetting(models.Model):
-    '''発言設定マスタ'''
+    """発言設定マスタ"""
     voice_setting = models.ForeignKey(MVoiceSettingSet, on_delete=models.CASCADE)  # 発言設定セット
     voice_type = models.ForeignKey(MVoiceType, on_delete=models.PROTECT)  # 発言種別
     voice_number = models.SmallIntegerField(default=0)  # 発言回数設定
@@ -89,11 +116,13 @@ class MVoiceSetting(models.Model):
     max_voice_point = models.SmallIntegerField(default=0)  # 最大ポイント数
 
     class Meta:
-        unique_together=(("voice_setting", "voice_type"))
+        verbose_name = "発言設定"
+        verbose_name_plural = "発言設定マスタ"
+        unique_together = ("voice_setting", "voice_type")
 
 
 class MChipSet(models.Model):
-    '''チップセットマスタ'''
+    """チップセットマスタ"""
     chip_set_name = models.CharField(max_length=100)  # チップセット名称
     author_name = models.CharField(max_length=100)  # 作者名
     character_number = models.SmallIntegerField(default=0)  # キャラクター人数
@@ -102,9 +131,16 @@ class MChipSet(models.Model):
     character_name_change_enable_flg = models.BooleanField(default=False)  # キャラクタ名変更可否フラグ
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "チップセット"
+        verbose_name_plural = "チップセットマスタ"
+
+    def __str__(self):
+        return self.chip_set_name
+
 
 class MChip(models.Model):
-    '''キャラチップマスタ'''
+    """キャラチップマスタ"""
     chip_set = models.ForeignKey(MChipSet, on_delete=models.CASCADE)  # チップセット
     sequence_number = models.SmallIntegerField(default=0)  # 連番
     image_file_path = models.FileField(upload_to='pywolf/static/pywolf/chips/')  # 画像ファイルパス
@@ -115,19 +151,31 @@ class MChip(models.Model):
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
     class Meta:
-        unique_together=(("chip_set", "sequence_number"))
+        verbose_name = "キャラチップ"
+        verbose_name_plural = "キャラチップマスタ"
+        unique_together = ("chip_set", "sequence_number")
+
+    def __str__(self):
+        return self.character_name
 
 
 class MSysMessageSet(models.Model):
-    '''システム文章セットマスタ'''
+    """システム文章セットマスタ"""
     system_message_set_name = models.CharField(max_length=100)  # システム文書セット名称
     commentary = models.TextField(blank=True)  # 説明
     display_order = models.IntegerField(default=0)  # 並び順
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "システム文章セット"
+        verbose_name_plural = "システム文章セットマスタ"
+
+    def __str__(self):
+        return self.system_message_set_name
+
 
 class MSysMessage(models.Model):
-    '''システム文章マスタ'''
+    """システム文章マスタ"""
     system_message_set = models.ForeignKey(MSysMessageSet, on_delete=models.CASCADE)  # システム文章セット
     sequence_number = models.SmallIntegerField(default=0)  # 連番
     system_message_name = models.CharField(max_length=100)  # システム文書名称
@@ -135,5 +183,9 @@ class MSysMessage(models.Model):
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
     class Meta:
-        unique_together=(("system_message_set", "sequence_number"))
+        verbose_name = "システム文章"
+        verbose_name_plural = "システム文章マスタ"
+        unique_together = ("system_message_set", "sequence_number")
 
+    def __str__(self):
+        return self.system_message_name

@@ -1,13 +1,13 @@
 from django.db import models
-from ..pywolf.masters  import MSysMessageSet
-from ..pywolf.masters  import MPosition
+from ..pywolf.masters import MSysMessageSet
+from ..pywolf.masters import MPosition
 from ..pywolf.masters import MVoiceType
 from ..pywolf.masters import MChipSet
 from ..pywolf.masters import MChip
 
 
 class PLAccount(models.Model):
-    '''PLアカウント'''
+    """PLアカウント"""
     id = models.CharField(primary_key=True, max_length=255)  # ID(内部)
     id_view = models.CharField(max_length=100)  # ID(表示用)
     password = models.CharField(max_length=255)  # パスワード
@@ -15,13 +15,20 @@ class PLAccount(models.Model):
     system_user_flg = models.BooleanField(default=False)  # システム用ユーザーフラグ
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "PLアカウント"
+        verbose_name_plural = "PLアカウント"
+
+    def __str__(self):
+        return self.id_view
+
 
 class Village(models.Model):
-    '''村'''
+    """村"""
     village_no = models.AutoField(primary_key=True)  # 村No
     village_master_account = models.ForeignKey(PLAccount, on_delete=models.SET("削除されたID"))  # 村建てID
     village_name = models.CharField(max_length=255)  # 村名
-    discription = models.TextField(blank=True)  # 村説明
+    description = models.TextField(blank=True)  # 村説明
     START_CLASS = (
         (1, '自動'),
         (2, '手動'),
@@ -65,19 +72,32 @@ class Village(models.Model):
     # ID公開フラグ
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
+    class Meta:
+        verbose_name = "村情報"
+        verbose_name_plural = "村情報"
+
+    def __str__(self):
+        return "{0}村:{1}".format(self.village_no, self.village_name)
+
 
 class VillageOrganizationSet(models.Model):
-    '''村編成セット'''
+    """村編成セット"""
     village_no = models.ForeignKey(Village, on_delete=models.PROTECT)  # 村番号
     organization_set_name = models.CharField(max_length=100)  # 編成セット名称
     participant_number = models.SmallIntegerField()  # 参加者数
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
     class Meta:
-        unique_together=(("village_no", "organization_set_name"))
+        verbose_name = "村編成セット"
+        verbose_name_plural = "村編成セット"
+        unique_together = ("village_no", "organization_set_name")
+
+    def __str__(self):
+        return "{0}村:{1}".format(self.village_no, self.organization_set_name)
+
 
 class VillageOrganization(models.Model):
-    '''村編成'''
+    """村編成"""
     village_no = models.ForeignKey(Village, on_delete=models.PROTECT)  # 村番号
     organization = models.ForeignKey(VillageOrganizationSet, on_delete=models.CASCADE)  # 編成セット
     serial_number = models.SmallIntegerField()  # 連番
@@ -85,11 +105,13 @@ class VillageOrganization(models.Model):
     number = models.SmallIntegerField()  # 人数
 
     class Meta:
-        unique_together=(("village_no", "organization", "serial_number"))
+        verbose_name = "村編成"
+        verbose_name_plural = "村編成"
+        unique_together = ("village_no", "organization", "serial_number")
 
 
 class VillageVoiceSetting(models.Model):
-    '''村発言設定'''
+    """村発言設定"""
     village_no = models.ForeignKey(Village, on_delete=models.PROTECT)  # 村番号
     voice_type = models.ForeignKey(MVoiceType, on_delete=models.PROTECT)  # 発言種別
     voice_number = models.SmallIntegerField(default=0)  # 発言回数設定
@@ -101,11 +123,13 @@ class VillageVoiceSetting(models.Model):
     epilogue_limit_off_flg = models.BooleanField(default=True)  # エピローグ無制限発言フラグ
 
     class Meta:
-        unique_together=(("village_no", "voice_type"))
+        verbose_name = "村発言設定"
+        verbose_name_plural = "村発言設定"
+        unique_together = ("village_no", "voice_type")
 
 
 class VillageParticipant(models.Model):
-    '''村参加者'''
+    """村参加者"""
     village_no = models.ForeignKey(Village, on_delete=models.PROTECT)  # 村番号
     pl = models.ForeignKey(PLAccount, on_delete=models.PROTECT)  # PL
     chip = models.ForeignKey(MChip, on_delete=models.PROTECT) # チップ
@@ -138,11 +162,16 @@ class VillageParticipant(models.Model):
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
     class Meta:
-        unique_together=(("village_no", "pl"))
+        verbose_name = "村参加者"
+        verbose_name_plural = "村参加者"
+        unique_together = ("village_no", "pl")
+
+    def __str__(self):
+        return "{0}村 {1}:{2}".format(self.village_no, self.pl, self.character_name)
 
 
 class VillageProgress(models.Model):
-    '''村進行'''
+    """村進行"""
     village_no = models.ForeignKey(Village, on_delete=models.PROTECT)  # 村番号
     day_no = models.SmallIntegerField(default=0)  # 日数番号
     VILLAGE_STATUS = (
@@ -155,11 +184,16 @@ class VillageProgress(models.Model):
     village_status = models.SmallIntegerField(choices=VILLAGE_STATUS, default=0)  # 村状態
 
     class Meta:
-        unique_together=(("village_no", "day_no"))
+        verbose_name = "村進行"
+        verbose_name_plural = "村進行"
+        unique_together = ("village_no", "day_no")
+
+    def __str__(self):
+        return "{0}村:{1}日目".format(self.village_no, self.day_no)
 
 
 class VillageParticipantVoiceStatus(models.Model):
-    '''村参加者発言ステータス'''
+    """村参加者発言ステータス"""
     village_participant = models.ForeignKey(VillageParticipant, on_delete=models.PROTECT)  # 村参加者ID
     day_no = models.SmallIntegerField(default=0)  # 日数番号
     voice_type = models.ForeignKey(MVoiceType, on_delete=models.PROTECT)  # 発言種別
@@ -167,11 +201,13 @@ class VillageParticipantVoiceStatus(models.Model):
     voice_point_remain = models.SmallIntegerField()  # 残り発言ポイント数
 
     class Meta:
-        unique_together=(("village_participant", "day_no"))
+        verbose_name = "村参加者発言ステータス"
+        verbose_name_plural = "村参加者発言ステータス"
+        unique_together = ("village_participant", "day_no")
 
 
 class VillageParticipantVoice(models.Model):
-    '''村参加者発言'''
+    """村参加者発言"""
     village_no = models.ForeignKey(Village, on_delete=models.PROTECT)  # 村番号
     village_participant = models.ForeignKey(VillageParticipant, on_delete=models.PROTECT)  # 村参加者ID
     day_no = models.SmallIntegerField(default=0)  # 日数番号
@@ -186,11 +222,13 @@ class VillageParticipantVoice(models.Model):
     delete_flg = models.BooleanField(default=False)  # 削除フラグ
 
     class Meta:
-        unique_together=(("village_no", "day_no", "voice_type", "voice_number"))
+        verbose_name = "村参加者発言"
+        verbose_name_plural = "村参加者発言"
+        unique_together = ("village_no", "day_no", "voice_type", "voice_number")
 
 
 class VillageParticipantExeAbility(models.Model):
-    '''村参加者能力行使'''
+    """村参加者能力行使"""
     village_participant = models.ForeignKey(VillageParticipant, on_delete=models.PROTECT)
     day_no = models.SmallIntegerField(default=0)  # 日数番号
     vote = models.CharField(max_length=255, blank=True)  # 投票先ID
@@ -199,6 +237,8 @@ class VillageParticipantExeAbility(models.Model):
     assault = models.CharField(max_length=255, blank=True)  # 襲撃先ID
 
     class Meta:
-        unique_together=(("village_participant", "day_no"))
+        verbose_name = "村参加者能力行使"
+        verbose_name_plural = "村参加者能力行使"
+        unique_together = ("village_participant", "day_no")
 
 

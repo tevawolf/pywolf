@@ -37,7 +37,7 @@ class VillageOrganizationSettingInline(admin.TabularInline):
 
 
 class VillageAdmin(admin.ModelAdmin):
-    list_display = ('village_no', 'village_name', 'discription')
+    list_display = ('village_no', 'village_name', 'description')
     inlines = [VillageVoiceSettingInline, VillageOrganizationSettingInline]
 
 
