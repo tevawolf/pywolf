@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models.pywolf.transactions import PLAccount
 from .models.pywolf.transactions import Village
 from .models.pywolf.transactions import VillageVoiceSetting
+from .models.pywolf.transactions import VillageOrganizationSet
 from .models.pywolf.transactions import VillageOrganization
 from .models.pywolf.transactions import VillageProgress
 from .models.pywolf.transactions import VillageParticipant
@@ -31,19 +32,25 @@ class VillageVoiceSettingInline(admin.TabularInline):
     extra = 1
 
 
-class VillageOrganizationSettingInline(admin.TabularInline):
+class VillageOrganizationSetInline(admin.TabularInline):
+    model = VillageOrganizationSet
+    extra = 1
+
+
+class VillageOrganizationInline(admin.TabularInline):
     model = VillageOrganization
     extra = 1
 
 
 class VillageAdmin(admin.ModelAdmin):
     list_display = ('village_no', 'village_name', 'description')
-    inlines = [VillageVoiceSettingInline, VillageOrganizationSettingInline]
+    inlines = [VillageVoiceSettingInline, VillageOrganizationSetInline]
 
 
 admin.site.register(Village, VillageAdmin)
 #admin.site.register(VillageVoiceSetting)
-#admin.site.register(VillageOrganization)
+admin.site.register(VillageOrganizationSet)
+admin.site.register(VillageOrganization)
 
 admin.site.register(VillageProgress)
 

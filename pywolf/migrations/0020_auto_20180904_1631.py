@@ -38,7 +38,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='villageorganization',
             name='organization',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='pywolf.VillageOrganizationSet'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pywolf.VillageOrganizationSet'),
+            # field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='pywolf.VillageOrganizationSet'),
             preserve_default=False,
         ),
         migrations.AlterUniqueTogether(
