@@ -2,7 +2,9 @@
         {% if voice.voice_type.id != VOICE_TYPE_ID.system %}
             <dir style="display:table;">
                 <div style="display: table-cell; width:90px;">
-                    <img src="/static/pywolf/chips{{voice.village_participant.chip.image_file_path}}" />
+                    <img src="{{voice.village_participant.chip.image_file_path}}"
+                         style="width:{{voice.village_participant.chip.image_width}}px;
+                         height:{{voice.village_participant.chip.image_height}}px;"/>
                 </div>
                 <div style="display: table-cell; vertical-align:top;">
                     <dir style="font-size:11px;"><a href="">{{ voice.voice_type.voice_type_symbol }}{{ voice.voice_number }}</a>:{{ voice.village_participant.character_name }}</dir>

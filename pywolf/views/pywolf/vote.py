@@ -10,8 +10,8 @@ import hashlib
 def vote(request, village_no, day_no):
     vote_id = request.POST['vote']
     login_id = request.session.get('login_id', False)
-    participant = VillageParticipant.objects.get(village_no=village_no, pl=login_id)
-    ability = VillageParticipantExeAbility.objects.get(village_participant=participant, day_no=day_no)
+    participant = VillageParticipant.objects.get(village_no=village_no, pl=login_id, cancel_flg=False)
+    ability = VillageParticipantExeAbility.objects.get(village_participant_id=participant.id, day_no=day_no)
 
     ability.vote = hashlib.sha256(vote_id.encode('utf-8')).hexdigest()
 

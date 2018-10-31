@@ -1,9 +1,9 @@
 body {
     color:              #ffffff;
-    background-color:   ;
-    background: linear-gradient(to bottom, #7c7c7c 0%,#000000 100%);
+    background: linear-gradient(to bottom, #7c7c7c 0%, #000000 100%);
     font-size:          12px;
     width:  500px;
+    height: 100%;
     margin: 0 auto;
 }
 dir {

@@ -1,6 +1,12 @@
 // 発言の入力文字数・行数チェック
 function inputCheck() {
-    var voiceLen = document.getElementById("voice_input_area").value.length;
+    // 発言欄があるかチェック
+    var inputArea = document.getElementById("voice_input_area");
+    if(!inputArea) {
+        return false;
+    }
+
+    var voiceLen = inputArea.value.length;
     document.getElementById("voice_input_number").innerText = voiceLen;
 
     var voiceLine = 0;

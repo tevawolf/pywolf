@@ -32,11 +32,6 @@ class VillageVoiceSettingInline(admin.TabularInline):
     extra = 1
 
 
-class VillageOrganizationSetInline(admin.TabularInline):
-    model = VillageOrganizationSet
-    extra = 1
-
-
 class VillageOrganizationInline(admin.TabularInline):
     model = VillageOrganization
     extra = 1
@@ -44,19 +39,22 @@ class VillageOrganizationInline(admin.TabularInline):
 
 class VillageAdmin(admin.ModelAdmin):
     list_display = ('village_no', 'village_name', 'description')
-    inlines = [VillageVoiceSettingInline, VillageOrganizationSetInline]
+    inlines = [VillageVoiceSettingInline]
 
 
 admin.site.register(Village, VillageAdmin)
-#admin.site.register(VillageVoiceSetting)
-admin.site.register(VillageOrganizationSet)
-admin.site.register(VillageOrganization)
 
+
+class VillageOrganizationSetAdmin(admin.ModelAdmin):
+    inlines = [VillageOrganizationInline]
+
+
+admin.site.register(VillageOrganizationSet, VillageOrganizationSetAdmin)
 admin.site.register(VillageProgress)
 
 
 class VillageParticipantAdmin(admin.ModelAdmin):
-    list_display = ('pl', 'chip', 'description', 'character_name')
+    list_display = ('pl', 'village_no', 'sequence', 'chip', 'description', 'character_name')
 
 
 admin.site.register(VillageParticipant, VillageParticipantAdmin)
@@ -69,7 +67,14 @@ class VillageParticipantVoiceAdmin(admin.ModelAdmin):
 
 
 admin.site.register(VillageParticipantVoice, VillageParticipantVoiceAdmin)
-admin.site.register(VillageParticipantVoiceStatus)
+
+
+class VillageParticipantVoiceStatusAdmin(admin.ModelAdmin):
+    list_display = ('village_participant', 'day_no', 'voice_type', 'voice_number_remain', 'voice_point_remain')
+
+
+admin.site.register(VillageParticipantVoiceStatus, VillageParticipantVoiceStatusAdmin)
+
 admin.site.register(VillageParticipantExeAbility)
 
 
@@ -107,7 +112,6 @@ class VoiceSettingAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MVoiceSettingSet, VoiceSettingAdmin)
-#admin.site.register(MVoiceSetting)
 
 
 # チップセット
@@ -122,7 +126,6 @@ class ChipsetAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MChipSet, ChipsetAdmin)
-#admin.site.register(MChip)
 
 
 # メッセージセット
@@ -137,7 +140,6 @@ class MessagesetAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MSysMessageSet, MessagesetAdmin)
-#admin.site.register(MSysMessage)
 
 
 # 編成セット
@@ -152,4 +154,3 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MOrganizationSet, OrganizationAdmin)
-#admin.site.register(MOrganization)

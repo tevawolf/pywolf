@@ -19,6 +19,6 @@ urlpatterns = [
     path('village<int:village_no>/day<int:day_no>/login/', login, name='login'),
     path('village<int:village_no>/day<int:day_no>/logout/', logout, name='logout'),
     path('village<int:village_no>/day<int:day_no>/vote/', vote, name='vote'),
-    path('village<int:village_no>/day<int:day_no>/entry/', entry, name='entry'),
-    path('village<int:village_no>/day<int:day_no>/entry_cancel/', entry_cancel, name='entry_cancel'),
+    path('village<int:village_no>/entry/', entry, name='entry'),
+    path('village<int:village_no>/entry_cancel/', entry_cancel, name='entry_cancel'),
 ]

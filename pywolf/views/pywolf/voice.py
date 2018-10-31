@@ -1,13 +1,15 @@
+from datetime import datetime
+
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 
+from ...models.pywolf.masters import MVoiceType
+from ...models.pywolf.masters import VOICE_TYPE_ID
+from ...models.pywolf.transactions import PLAccount
 from ...models.pywolf.transactions import Village
 from ...models.pywolf.transactions import VillageParticipant
 from ...models.pywolf.transactions import VillageParticipantVoice
-from ...models.pywolf.transactions import PLAccount
-from ...models.pywolf.masters import MVoiceType
-
-from datetime import datetime
 
 
 def voice(request, village_no, day_no):
@@ -19,11 +21,21 @@ def voice(request, village_no, day_no):
     voice.day_no = day_no
     vt = request.POST['voice_type']
     voice.voice_type = MVoiceType.objects.get(pk=vt)
-    lastvoice = \
-        Village.objects.get(pk=village_no). \
-            villageparticipantvoice_set.order_by('-voice_number')[0]
-    voice.voice_number = lastvoice.voice_number + 1
-    voice.voice_order = lastvoice.voice_order + 1
+
+    village = get_object_or_404(Village, pk=village_no)  # 村情報
+
+    if(village.villageparticipantvoice_set.exists()):
+        lastvoice_type = \
+            village.villageparticipantvoice_set.filter(voice_type_id=VOICE_TYPE_ID['normal']).order_by('-voice_number')[0]
+        voice.voice_number = lastvoice_type.voice_number + 1
+
+        lastvoice_order = \
+            village.villageparticipantvoice_set.order_by('-voice_order')[0]
+        voice.voice_order = lastvoice_order.voice_order + 1
+    else:
+        voice.voice_number = 0
+        voice.voice_order = 0
+
     voice.use_point = 0
     v = request.POST['voice']
     voice.voice = v

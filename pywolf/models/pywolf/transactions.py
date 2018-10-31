@@ -82,24 +82,22 @@ class VillageOrganizationSet(models.Model):
     class Meta:
         verbose_name = "村編成セット"
         verbose_name_plural = "村編成セット"
-        unique_together = ("village_no", "organization_set_name")
 
-    village_no = models.ForeignKey(Village, verbose_name='村番号', on_delete=models.PROTECT)  # 村番号
+    village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
     organization_set_name = models.CharField(verbose_name='編成セット名称', max_length=100)  # 編成セット名称
     participant_number = models.SmallIntegerField(verbose_name='参加者数')  # 参加者数
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
     def __str__(self):
-        return "{0}村:{1}".format(self.village_no, self.organization_set_name)
+        return "{0} {1}".format(self.village_no, self.organization_set_name)
 
 
 class VillageOrganization(models.Model):
     class Meta:
         verbose_name = "村編成"
         verbose_name_plural = "村編成"
-        unique_together = ("village_no", "organization", "serial_number")
+        unique_together = ("organization", "serial_number")
 
-    village_no = models.ForeignKey(Village, verbose_name='村番号', on_delete=models.PROTECT)  # 村番号
     organization = models.ForeignKey(VillageOrganizationSet, verbose_name='編成セット', on_delete=models.CASCADE)  # 編成セット
     serial_number = models.SmallIntegerField(verbose_name='連番')  # 連番
     position = models.ForeignKey(MPosition, verbose_name='役職', on_delete=models.PROTECT)  # 役職
@@ -112,7 +110,7 @@ class VillageVoiceSetting(models.Model):
         verbose_name_plural = "村発言設定"
         unique_together = ("village_no", "voice_type")
 
-    village_no = models.ForeignKey(Village, verbose_name='村番号', on_delete=models.PROTECT)  # 村番号
+    village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
     voice_type = models.ForeignKey(MVoiceType, verbose_name='発言種別', on_delete=models.PROTECT)  # 発言種別
     voice_number = models.SmallIntegerField(verbose_name='発言回数設定', default=0)  # 発言回数設定
     max_str_length = models.SmallIntegerField(verbose_name='最大文字数', default=0)  # 最大文字数
@@ -127,10 +125,11 @@ class VillageParticipant(models.Model):
     class Meta:
         verbose_name = "村参加者"
         verbose_name_plural = "村参加者"
-        unique_together = ("village_no", "pl")
+        unique_together = ("village_no", "pl", "sequence")
 
-    village_no = models.ForeignKey(Village, verbose_name='村番号', on_delete=models.PROTECT)  # 村番号
+    village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
     pl = models.ForeignKey(PLAccount, verbose_name='PL', on_delete=models.PROTECT)  # PL
+    sequence = models.IntegerField(verbose_name='連番', default=0)
     chip = models.ForeignKey(MChip, verbose_name='チップ', on_delete=models.PROTECT) # チップ
     description = models.CharField(verbose_name='肩書', max_length=30)  # 肩書
     character_name = models.CharField(verbose_name='キャラクタ名', max_length=30)  # キャラクタ名
@@ -139,7 +138,7 @@ class VillageParticipant(models.Model):
         related_name='%(class)s_wish_position_id')  # 希望役職
     position = models.ForeignKey(
         MPosition, verbose_name='役職', on_delete=models.PROTECT,
-        related_name='%(class)s_position_id')  # 役職
+        related_name='%(class)s_position_id', null=True, blank=True)  # 役職
     STATUS = (
         (0, "生存"),
         (1, "処刑死"),
@@ -158,10 +157,11 @@ class VillageParticipant(models.Model):
     memo = models.TextField(verbose_name='メモ', blank=True)  # メモ
     village_denominated_flg = models.BooleanField(verbose_name='村建てフラグ', default=False)  # 村建てフラグ
     system_user_flg = models.BooleanField(verbose_name='システム用ユーザーフラグ', default=False)  # システム用ユーザーフラグ
+    cancel_flg = models.BooleanField(verbose_name='退村フラグ', default=False)
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
     def __str__(self):
-        return "{0}村 {1}:{2}".format(self.village_no, self.pl, self.character_name)
+        return "{0} {1}(連番{2}):{3}".format(self.village_no, self.pl, self.sequence, self.character_name)
 
 
 class VillageProgress(models.Model):
@@ -169,8 +169,9 @@ class VillageProgress(models.Model):
         verbose_name = "村進行"
         verbose_name_plural = "村進行"
         unique_together = ("village_no", "day_no")
+        get_latest_by = 'day_no'
 
-    village_no = models.ForeignKey(Village, verbose_name='村番号', on_delete=models.PROTECT)  # 村番号
+    village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
     day_no = models.SmallIntegerField(verbose_name='日数番号', default=0)  # 日数番号
     VILLAGE_STATUS = (
         (0, "プロローグ"),
@@ -182,16 +183,16 @@ class VillageProgress(models.Model):
     village_status = models.SmallIntegerField(verbose_name='村状態', choices=VILLAGE_STATUS, default=0)  # 村状態
 
     def __str__(self):
-        return "{0}村:{1}日目".format(self.village_no, self.day_no)
+        return "{0}:{1}日目".format(self.village_no, self.day_no)
 
 
 class VillageParticipantVoiceStatus(models.Model):
     class Meta:
         verbose_name = "村参加者発言ステータス"
         verbose_name_plural = "村参加者発言ステータス"
-        unique_together = ("village_participant", "day_no")
+        unique_together = ("village_participant", "day_no", "voice_type")
 
-    village_participant = models.ForeignKey(VillageParticipant, verbose_name='村参加者ID', on_delete=models.PROTECT)  # 村参加者ID
+    village_participant = models.ForeignKey(VillageParticipant, verbose_name='村参加者', on_delete=models.PROTECT)  # 村参加者ID
     day_no = models.SmallIntegerField(verbose_name='日数番号', default=0)  # 日数番号
     voice_type = models.ForeignKey(MVoiceType, verbose_name='発言種別', on_delete=models.PROTECT)  # 発言種別
     voice_number_remain = models.SmallIntegerField(verbose_name='残り発言回数')  # 残り発言回数
@@ -204,8 +205,8 @@ class VillageParticipantVoice(models.Model):
         verbose_name_plural = "村参加者発言"
         unique_together = ("village_no", "day_no", "voice_type", "voice_number")
 
-    village_no = models.ForeignKey(Village, verbose_name='村番号', on_delete=models.PROTECT)  # 村番号
-    village_participant = models.ForeignKey(VillageParticipant, verbose_name='村参加者ID', on_delete=models.PROTECT)  # 村参加者ID
+    village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
+    village_participant = models.ForeignKey(VillageParticipant, verbose_name='村参加者', on_delete=models.PROTECT)  # 村参加者ID
     day_no = models.SmallIntegerField(verbose_name='日数番号', default=0)  # 日数番号
     voice_type = models.ForeignKey(MVoiceType, verbose_name='発言種別', on_delete=models.PROTECT)  # 発言種別
     voice_number = models.SmallIntegerField(verbose_name='発言番号（種別毎）')  # 発言番号（種別毎）
@@ -215,6 +216,7 @@ class VillageParticipantVoice(models.Model):
     good_pl = models.CharField(verbose_name='イイねしたPL', max_length=255, blank=True)  # イイねしたPL
     voice_datetime = models.DateTimeField(verbose_name='発言日時')  # 発言日時
     system_voice_flg = models.BooleanField(verbose_name='システムメッセージフラグ', default=False)  # システムメッセージフラグ
+    cancel_flg = models.BooleanField(verbose_name='発言取り消しフラグ', default=False)
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
 
@@ -230,6 +232,9 @@ class VillageParticipantExeAbility(models.Model):
     fortune = models.CharField(verbose_name='占い先ID', max_length=255, blank=True)  # 占い先ID
     guard = models.CharField(verbose_name='護衛先ID', max_length=255, blank=True)  # 護衛先ID
     assault = models.CharField(verbose_name='襲撃先ID', max_length=255, blank=True)  # 襲撃先ID
+
+    def __str__(self):
+        return "{0} : {1}日目".format(self.village_participant, self.day_no)
 
 
 

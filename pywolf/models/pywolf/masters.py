@@ -44,7 +44,7 @@ class MOrganization(models.Model):
     """編成マスタ"""
     organization = models.ForeignKey(MOrganizationSet, verbose_name='編成セット', on_delete=models.CASCADE)  # 編成セット
     sequence_number = models.SmallIntegerField(verbose_name='連番', default=0)  # 連番
-    position_id = models.ForeignKey(MPosition, verbose_name='役職ID', on_delete=models.PROTECT)  # 役職ID
+    position_id = models.ForeignKey(MPosition, verbose_name='役職', on_delete=models.PROTECT)  # 役職ID
     number = models.SmallIntegerField(verbose_name='人数')  # 人数
 
     class Meta:

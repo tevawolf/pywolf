@@ -3,9 +3,13 @@ from django.shortcuts import get_object_or_404
 
 from ...models.pywolf.transactions import Village
 from ...models.pywolf.transactions import VillageProgress
+from ...models.pywolf.transactions import VillageOrganizationSet
+from ...models.pywolf.transactions import  VillageOrganization
 from ...models.pywolf.transactions import VillageParticipantExeAbility
 from ...models.pywolf.masters import VOICE_TYPE_ID
 from ...models.pywolf.masters import MPositionVoiceSetting
+from ...models.pywolf.masters import MChip
+from ...models.pywolf.masters import MPosition
 
 
 def village(request, village_no, day_no):
@@ -14,11 +18,18 @@ def village(request, village_no, day_no):
     # 各種情報取得
     # get_object_or_404ではエラーメッセージをカスタマイズできない？？
     village = get_object_or_404(Village, pk=village_no)  # 村情報
-    parts = village.villageparticipant_set.filter(village_no=village_no, system_user_flg=False).order_by('id')  # 参加者情報
+    parts = village.villageparticipant_set.filter(village_no=village_no, system_user_flg=False, cancel_flg=False).order_by('id')  # 参加者（投票・能力行使先）
     voices = village.villageparticipantvoice_set.filter(day_no=day_no).order_by('voice_order')  # 発言
-    progress = get_object_or_404(VillageProgress, pk=village_no)  # 村進行情報
-    # プロローグの場合、村役職情報（まだ未決定のもののみ）
-    # 村の最大人数で、村編成セットから設定役職を重複なしで取得する
+    progress = village.villageprogress_set.latest()  # 村進行情報(現在の）
+    chips = MChip.objects.filter(chip_set_id=village.chip_set_id)  # 村チップセット情報
+    # プロローグの場合、村役職情報
+    positions = []
+    if progress.village_status == 0:
+        # 村の最大人数で、村編成セットから設定役職を重複なしで取得する
+        orgset = get_object_or_404(VillageOrganizationSet, village_no_id=village_no)
+        organizations = VillageOrganization.objects.filter(organization_id=orgset.id)
+        for org in organizations:
+            positions.append(MPosition.objects.get(id=org.position_id))
 
     # ログインユーザーの村参加情報取得
     login_user = request.session.get('login_user', False)
@@ -37,7 +48,7 @@ def village(request, village_no, day_no):
     if login_id:
         # ログインプレイヤーの村参加情報を取得
         try:
-            particant = village.villageparticipant_set.get(village_no=village_no, pl=login_id)
+            particant = village.villageparticipant_set.get(village_no=village_no, pl=login_id, cancel_flg=False)
 
             # 役職別発言設定を取得
             voice_settings = MPositionVoiceSetting.objects.filter(position=particant.position)
@@ -78,8 +89,10 @@ def village(request, village_no, day_no):
                    'self_voice_mode': self_voice_mode,      # 独り言発言モード
                    'grave_voice_mode': grave_voice_mode,    # 墓下発言モード
                    'VOICE_TYPE_ID': VOICE_TYPE_ID,          # 発言種別IDディクショナリ
-                   'parts': parts,                           # 村参加者情報
+                   'parts': parts,                           # 村参加者（投票・能力行使先）
                    'vote': vote,                             # ログインユーザ能力行使セット情報
                    'progress': progress,                    # 村進行情報
+                   'chips': chips,                          # チップセット
+                   'positions': positions,          # 村役職リスト
                    }
                   )
