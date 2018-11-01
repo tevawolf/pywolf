@@ -6,3 +6,4 @@ from .logout import logout
 from .vote import vote
 from .entry import entry
 from .entry_cancel import entry_cancel
+from .fortune import fortune

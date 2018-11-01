@@ -2,7 +2,8 @@
         {% if voice.voice_type.id != VOICE_TYPE_ID.system %}
             <dir style="display:table;">
                 <div style="display: table-cell; width:90px;">
-                    <img src="{{voice.village_participant.chip.image_file_path}}"
+                    {% load static %}
+                    <img src="{% static voice.village_participant.chip.getPath %}"
                          style="width:{{voice.village_participant.chip.image_width}}px;
                          height:{{voice.village_participant.chip.image_height}}px;"/>
                 </div>

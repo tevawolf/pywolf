@@ -13,11 +13,11 @@ from ...models.pywolf.transactions import VillageParticipantVoice
 
 
 def voice(request, village_no, day_no):
-    '''発言を投稿して村メイン画面に戻る'''
+    """発言を投稿して村メイン画面に戻る"""
 
     voice = VillageParticipantVoice()
     voice.village_no = Village.objects.get(pk=village_no)
-    voice.village_participant = VillageParticipant.objects.get(pl=request.session['login_id'])
+    voice.village_participant = VillageParticipant.objects.get(village_no=village_no, pl=request.session['login_id'], cancel_flg=False)
     voice.day_no = day_no
     vt = request.POST['voice_type']
     voice.voice_type = MVoiceType.objects.get(pk=vt)

@@ -5,7 +5,7 @@ from ...models.pywolf.transactions import PLAccount
 
 
 def index(request):
-    '''トップページ表示'''
+    """トップページ表示"""
     pl_list = PLAccount.objects.order_by('id')
     village_list = Village.objects.order_by('village_no')
     context = {'village_list': village_list, 'pl_list': pl_list}

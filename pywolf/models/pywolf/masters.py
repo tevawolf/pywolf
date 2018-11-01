@@ -143,7 +143,7 @@ class MChip(models.Model):
     """キャラチップマスタ"""
     chip_set = models.ForeignKey(MChipSet, verbose_name='チップセット', on_delete=models.CASCADE)  # チップセット
     sequence_number = models.SmallIntegerField(verbose_name='連番', default=0)  # 連番
-    image_file_path = models.FileField(verbose_name='画像ファイルパス', upload_to='pywolf/static/pywolf/chips/')  # 画像ファイルパス
+    image_file_path = models.FileField(verbose_name='画像ファイルパス', upload_to='pywolf/chips/')  # 画像ファイルパス
     image_width = models.SmallIntegerField(verbose_name='画像幅', default=90)  # 画像幅
     image_height = models.SmallIntegerField(verbose_name='画像高さ', default=130)  # 画像高さ
     description = models.CharField(verbose_name='肩書', max_length=30)  # 肩書
@@ -157,6 +157,9 @@ class MChip(models.Model):
 
     def __str__(self):
         return self.character_name
+
+    def getPath(self):
+        return str(self.image_file_path)
 
 
 class MSysMessageSet(models.Model):

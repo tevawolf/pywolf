@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <title>蛇狼独立領 村{{village.village_no}} {{village.village_name}}</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'pywolf/standard.css' %}" />
-    <link rel="stylesheet" href="{% static 'pywolf/voice_window.css' %}" />
+    {% load pywolf.lookup %}
+    <link rel="stylesheet" href="{% static css %}" />
+    <link rel="stylesheet" href="{% static css_win %}" />
+    <link rel="stylesheet" href="{% static css_textarea %}" />
     <link rel="stylesheet" href="{% static 'pywolf/tabs.css' %}" />
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="{% static 'pywolf/pywolf.js' %}" ></script>
@@ -25,9 +27,26 @@
             $('#entry_description').val(select[3]);
             $('#entry_name').val(select[4]);
         }
+        // 発言窓の表示変更処理
+        function selectVoiceType(type) {
+            if (type == {{VOICE_TYPE_ID.normal}}) {
+                $('#voice_input_area').removeClass();
+                $('#voice_input_area').addClass("voice voice_textarea_common voice_textarea_normal");
+            } else if (type == {{VOICE_TYPE_ID.wolf}}) {
+                $('#voice_input_area').removeClass();
+                $('#voice_input_area').addClass("voice voice_textarea_common voice_textarea_wolf");
+            } else if (type == {{VOICE_TYPE_ID.self}}) {
+                $('#voice_input_area').removeClass();
+                $('#voice_input_area').addClass("voice voice_textarea_common voice_textarea_self");
+            } else if (type == {{VOICE_TYPE_ID.grave}}) {
+                $('#voice_input_area').removeClass();
+                $('#voice_input_area').addClass("voice voice_textarea_common voice_textarea_grave");
+            }
+        }
     </script>
 </head>
 <body onload="inputCheck();">
+    <a href="{% url 'pywolf:index' %}">トップページに戻る</a>
     {# ログイン・ログアウトフォーム #}
     <div style="text-align:right;">
     {% if login_user %}
@@ -39,8 +58,8 @@
     {% else %}
         <form action="{% url 'pywolf:login' village.village_no day_no %}" method="post">
             {% csrf_token %}
-            <input type="text" name="id"/>
-            <input type="password" name="password"/>
+            <span>ID:</span><input type="text" name="id"/><br />
+            <span>パスワード:</span><input type="password" name="password"/><br />
             <input type="submit" value="ログイン">
         </form>
         <span>{{ login_message }}</span>
@@ -51,62 +70,57 @@
     <h1>{{village.village_no}} {{village.village_name}}<span style="font-size:11px;">({{village.update_time}}に更新)</span></h1>
     <h2>{{ day_no }}日目</h2>
 
-    {# 発言ログ #}
+    {# 発言ログ 表示・非表示の制御 #}
+    {# ★★エピったらフルオープンになる機能をどう実装するか★★ #}
     {% for voice in voices %}
-            {# 表示・非表示の制御 #}
-            {% if login_user %}
-                {# ログインかつ入村後は、他参加者の発言の種別を見て、表示・非表示を判定 #}
-                {% if participant %}
-                    {% if voice.village_participant.pl.id_view != login_user %}
-                        {# 他参加者の発言 #}
-                        {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}
-                            {# 通常 #}
-                            {% if normal_voice_flg != 0 and normal_voice_flg != 2 %}{% include 'pywolf/voice_window.html' %}{% endif %}
-                        {% elif voice.voice_type.id == VOICE_TYPE_ID.wolf %}
-                            {# 人狼 #}
-                            {% if wolf_voice_flg != 0 and wolf_voice_flg != 2 %}{% include 'pywolf/voice_window.html' %}{% endif %}
-                        {% elif voice.voice_type.id == VOICE_TYPE_ID.self %}
-                            {# 独り言 #}
-                            {% if self_voice_flg != 0 and self_voice_flg != 2 %}{% include 'pywolf/voice_window.html' %}{% endif %}
-                        {% elif voice.voice_type.id == VOICE_TYPE_ID.grave %}
-                            {# 墓下 #}
-                            {% if grave_voice_flg != 0 and grave_voice_flg != 2 %}
-                                {% if particant.status != 0 %}{% include 'pywolf/voice_window.html' %}{% endif %}
+        {% if login_user %}
+            {% if participant %}
+            {# ログインかつ入村後は、他参加者の発言の種別を見て、表示・非表示を判定 #}
+                {% if voice.village_participant.pl.id_view != login_user %}
+                    {# 他参加者の発言 #}
+                    {% for vs in voice_settings %}
+                        {% if voice.voice_type.id == vs.voice_type_id %}  {# 発言種別を自分の発言設定と照合 #}
+                            {% if vs.speech_hear_mode != 0 and vs.speech_hear_mode != 2 %}  {# モードが条件に合うか #}
+                                {% if participant.status != 0 %}  {# 死亡時 墓下のみ表示 #}
+                                    {% if voice.voice_type.id == VOICE_TYPE_ID.grave %}
+                                        {% include 'pywolf/voice_window.html' %}
+                                    {% endif %}
+                                {% else %}  {# 死亡時以外 #}
+                                     {% include 'pywolf/voice_window.html' %}
+                                {% endif %}
                             {% endif %}
-                        {% elif voice.voice_type.id == VOICE_TYPE_ID.system %}
-                            {# システム #}
-                            {% include 'pywolf/voice_window.html' %}
                         {% endif %}
-                    {% else %}
-                        {# 自分の発言はすべて表示 #}
-                        {% include 'pywolf/voice_window.html' %}
-                    {% endif %}
-                {# ログイン後も入村していなければ、強制的に通常発言のみ（エピ除く #}
+                    {% endfor %}
                 {% else %}
-                    {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}
-                        {% include 'pywolf/voice_window.html' %}
-                    {% elif voice.voice_type.id == VOICE_TYPE_ID.system %}
-                        {% include 'pywolf/voice_window.html' %}
-                    {% endif %}
+                    {# 自分の発言はすべて表示 #}
+                    {% include 'pywolf/voice_window.html' %}
                 {% endif %}
+            {# ログイン後も入村していなければ、強制的に通常発言・システム発言のみ #}
             {% else %}
-                {# 非ログイン時は強制的に通常発言のみ（エピ除く #}
                 {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}
                     {% include 'pywolf/voice_window.html' %}
                 {% elif voice.voice_type.id == VOICE_TYPE_ID.system %}
                     {% include 'pywolf/voice_window.html' %}
                 {% endif %}
             {% endif %}
+        {% else %}
+            {# 非ログイン時は強制的に通常発言・システム発言のみ #}
+            {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}
+                {% include 'pywolf/voice_window.html' %}
+            {% elif voice.voice_type.id == VOICE_TYPE_ID.system %}
+                {% include 'pywolf/voice_window.html' %}
+            {% endif %}
+        {% endif %}
     {% endfor %}
 
     {% if login_user %}  {# ログインしていれば、発言など入力欄 #}
-        {% if progress.village_status == 0 and particant == False %}  {# プロローグで入村前の場合、入村フォーム #}
+        {% if progress.village_status == 0 and participant == False %}  {# プロローグで入村前の場合、入村フォーム #}
             <form action="{% url 'pywolf:entry' village.village_no %}" method="post">
                 {% csrf_token %}
                 <dir>入村フォーム</dir>
                 <div>キャラクター：
                     <span id="entry_character_image">
-                        <img src="{% static '/chips/noselect.png' %}" />
+                        <img src="{% static 'pywolf/chips/noselect.png' %}" />
                     </span>
                     <select name="chip" id="entry_character_chip" onchange="selectCharacterChip();">
                         <option value="">(選択してください)</option>
@@ -128,119 +142,120 @@
                 <dir><span>発言</span><textarea class="voice" style="width:350px; height:150px; background: linear-gradient(135deg, #FFFFFF 60%, #DDDDDD 100%); border: solid 1.5px #222222;" name="voice"></textarea></dir>
                 <dir><input type="submit" value="入村します"></dir>
             </form>
-        {% elif particant != False %}  {# 入村していれば発言窓を表示 #}
-            <span>{{ particant.description }}{{ particant.character_name }}</span>
-
-            {# ★★　要整理！！　★★ #}
-
-            {# プロローグは投票フォームなし、発言は通常と独り言のみ #}
-
-            {% if particant.status == 0 %}  {# 生存していれば地上、だが、投票・能力行使だけを分岐でよいのでは？ #}
-                {# 投票フォーム #}
-                <form action="{% url 'pywolf:vote' village.village_no day_no %}" method="post">
-                    {% csrf_token %}
-                    <div>投票先：
-                        <select name="vote">
-                            <option value="">(選択してください)</option>
-                            {% for part in parts %}
-                                {% if part.status == 0 %}
-                                    <option value="{{part.pl.id_view}}">{{part.character_name}}</option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                        <input type="submit" value="投票セット">
-                    </div>
-                    {% if vote %}<div>現在、{{ vote }}に投票セットされています。</div>{% endif %}
-                </form>
-
-                {# 発言欄のタブ方式はやめたい #}
-                {# ほかの情報欄（村情報、進行情報、フィルタ）をタブ化したい #}
-                <div class="tabs">
-                    {% if normal_voice_mode >= 2 %}
-                        <input id="normal" type="radio" name="tab_item" checked>
-                        <label class="tab_item" for="normal">通常</label>
-                    {% endif %}
-                    {% if wolf_voice_mode >= 2 %}
-                        <input id="wolf" type="radio" name="tab_item">
-                        <label class="tab_item" for="wolf">人狼</label>
-                    {% endif %}
-                    {% if self_voice_mode >= 2 %}
-                        <input id="self" type="radio" name="tab_item">
-                        <label class="tab_item" for="self">独り言</label>
-                    {% endif %}
-                    {% if normal_voice_mode >= 2 %}  {# 通常 #}
-                    <div class="tab_content" id="normal_content">
+        {% elif participant != False %}  {# 入村していれば発言窓を表示 #}
+            {% if progress.village_status != 3 and progress.village_status != 4 %}  {# 終了もしくは廃村でなければシステム欄表示 #}
+                <div class="tabs">  {# システム欄（発言、フィルタ、村情報、進行情報）をタブ化 #}
+                    <input id="voice" type="radio" name="tab_item" checked>
+                    <label class="tab_item" for="voice">発言・投票・能力行使</label>
+                    <input id="filter" type="radio" name="tab_item">
+                    <label class="tab_item" for="filter">フィルタ</label>
+                    <input id="village" type="radio" name="tab_item">
+                    <label class="tab_item" for="village">村情報</label>
+                    <input id="progress" type="radio" name="tab_item">
+                    <label class="tab_item" for="progress">進行情報</label>
+                    <div class="tab_content" id="voice_content">
                         <div class="tab_content_description">
-                            <span style="width: 20%; height:200px; float:left;">
-                                <img src="{% static 'pywolf/chips' %}{{particant.chip.image_file_path}}"/>
+                            <span>{{ participant.description }}{{ participant.character_name }}</span>
+                            <span style="width: 20%; height:100%; float:left;">
+                                <img src="{% static participant.chip.getPath %}"
+                                 style="width:{{participant.chip.image_width}}px;
+                                 height:{{participant.chip.image_height}}px;"/>
                             </span>
                             <span style="width: 80%; height:200px;">
+                                {% if participant.status == 0 and participant.position.vote_enable_flg == True and progress.village_status == 1 %}  {# 進行中・投票可能役職（普通全部）・ログイン参加者が生存なら投票フォーム表示 #}
+                                <form action="{% url 'pywolf:vote' village.village_no day_no %}" method="post">
+                                    {% csrf_token %}
+                                    <div>投票先：
+                                        <select name="vote">
+                                            <option value="">(選択してください)</option>
+                                            {% for part in parts %}
+                                                {% if part.status == 0 %}
+                                                    <option value="{{part.pl.id_view}}">{{part.character_name}}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <input type="submit" value="投票セット">
+                                    </div>
+                                    {% if vote %}<div>現在、{{ vote }}に投票セットされています。</div>{% endif %}
+                                </form>
+                                {% endif %}
                                 <form name="voice" action="{% url 'pywolf:confirm' village.village_no day_no %}" method="post">
                                     {% csrf_token %}
-                                    <textarea id="voice_input_area" class="voice" style="width:350px; height:150px; background: linear-gradient(135deg, #FFFFFF 60%, #DDDDDD 100%); border: solid 1.5px #222222;" name="voice" oninput="inputCheck();"></textarea></br>
+                                    {% if progress.village_status == 0 %} {# プロローグ中の発言設定 #}
+                                        {% for vt in voice_type %}
+                                            {% if vt.prologue_speech_enable_flg == True %}
+                                                {# プロローグ発言可否フラグがTrueの場合のみ #}
+                                                <input type="radio" name="voice_type" id="voice_type{{vt.id}}" value="{{vt.id}}" onchange="selectVoiceType({{vt.id}});">
+                                                    <label for="voice_type{{vt.id}}">{{vt.voice_type_name}}</label>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for vs in voice_settings %}
+                                            {% if participant.village_status == 1 or participant.village_status == 2 %}
+                                                {% if vs.voice_type_id == VOICE_TYPE.grave %}
+                                                    {# 死亡している場合は、墓下発言のみ #}
+                                                    {# ★★ここは将来拡張したいかも　墓下でも赤窓と話せる役職とか★★ #}
+                                                    {# ★★今のうちに発言種別マスタにフラグ増やすか？？★★ #}
+                                                    <input type="radio" name="voice_type" id="voice_type{{vs.voice_type_id}}" value="{{vs.voice_type_id}}" onchange="selectVoiceType({{vs.voice_type_id}});">
+                                                    <label for="voice_type{{vs.voice_type_id}}">{{vs.voice_type_name}}</label>
+                                                {% endif %}
+                                            {% else %}
+                                                {% if vs.speech_hear_mode >= 2 %}
+                                                    {# 役職別発言設定で、発言可能となっている場合のみ #}
+                                                    <input type="radio" name="voice_type" id="voice_type{{vs.voice_type_id}}" value="{{vs.voice_type_id}}" onchange="selectVoiceType({{vs.voice_type_id}});">
+                                                    <label for="voice_type{{vs.voice_type_id}}">{{vs.voice_type_name}}</label>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    <textarea id="voice_input_area" class="voice voice_textarea_common voice_textarea_normal" name="voice" oninput="inputCheck();"></textarea></br>
                                     <span><span id="voice_input_number"></span>/200文字 <span id="voice_input_line"></span>/20行</span>
-                                    <input type="hidden" name="voice_type" value="{{VOICE_TYPE_ID.normal}}">
-                                    <input type="hidden" name="chip_pass" value="{{particant.chip.image_file_path}}">
+                                    <input type="hidden" name="chip_pass" value="{{participant.chip.getPath}}">
+                                    <input type="hidden" name="chip_width" value="{{participant.chip.image_width}}">
+                                    <input type="hidden" name="chip_height" value="{{participant.chip.image_height}}">
                                     <input type="submit" name="voice_submit" value="発言">
                                 </form>
-                            </span>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if wolf_voice_mode >= 2 %}  {# 人狼 #}
-                    <div class="tab_content" id="wolf_content">
-                        <div class="tab_content_description">
-                            <span style="width: 20%; height:200px; float:left;">
-                                <img src="{% static 'pywolf/chips' %}{{particant.chip.image_file_path}}"/>
-                            </span>
-                            <span style="width: 80%; height:200px;">
-                                <form action="{% url 'pywolf:confirm' village.village_no day_no %}" method="post">
+                                {% if participant.status == 0 and participant.position.fortune_enable_flg == True and progress.village_status == 1 %}  {# 進行中・占い可能役職・ログイン参加者が生存なら占いフォーム表示 #}
+                                <form name="fortune" action="{% url 'pywolf:fortune' village.village_no day_no %}" method="post">
                                     {% csrf_token %}
-                                    <textarea class="voice" style="width:300px; height:150px; background: linear-gradient(135deg, #d32a2a 25%, #000000 100%); border: solid 1.5px #222222;" name="voice"></textarea></br>
-                                    <input type="hidden" name="voice_type" value="{{VOICE_TYPE_ID.wolf}}">
-                                    <input type="hidden" name="chip_pass" value="{{particant.chip.image_file_path}}">
-                                    <input type="submit" value="発言">
+                                    {% for day, name in fortune.items %}
+                                        <span>{{day}}日に{{name}}を占い、{{fortune_result | lookup:day }}だった。</span><br />
+                                    {% endfor %}
+                                    <div>占い先：
+                                        <select name="fortune">
+                                            <option value="">(選択してください)</option>
+                                            {% for part in parts %}
+                                                {% if part.status == 0 %}
+                                                    <option value="{{part.pl.id_view}}">{{part.character_name}}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <input type="submit" value="占いセット">
+                                    </div>
+                                    {% if fortune %}<div>現在、{{ fortune | lookup:day_no }}に占いセットされています。</div>{% endif %}
                                 </form>
+                                {% endif %}
                             </span>
                         </div>
                     </div>
-                    {% endif %}
-                    {% if self_voice_mode >= 2 %}  {# 独り言 #}
-                    <div class="tab_content" id="self_content">
+                    <div class="tab_content" id="filter_content">
                         <div class="tab_content_description">
-                            <span style="width: 20%; height:200px; float:left;">
-                                <img src="{% static 'pywolf/chips' %}{{particant.chip.image_file_path}}"/>
-                            </span>
-                            <span style="width: 80%; height:200px;">
-                                <form action="{% url 'pywolf:confirm' village.village_no day_no %}" method="post">
-                                    {% csrf_token %}
-                                    <textarea class="voice" style="width:300px; height:150px; background: linear-gradient(135deg, #DDDDDD 25%, #555555 100%); border: solid 1.5px #222222;" name="voice"></textarea></br>
-                                    <input type="hidden" name="voice_type" value="{{VOICE_TYPE_ID.self}}">
-                                    <input type="hidden" name="chip_pass" value="{{particant.chip.image_file_path}}">
-                                    <input type="submit" value="発言">
-                                </form>
-                            </span>
+                            フィルタ機能
                         </div>
                     </div>
-                    {% endif %}
+                    <div class="tab_content" id="village_content">
+                        <div class="tab_content_description">
+                            村情報
+                        </div>
+                    </div>
+                    <div class="tab_content" id="progress_content">
+                        <div class="tab_content_description">
+                            進行情報
+                        </div>
+                    </div>
                 </div>
-            {% else %}
-                {% if grave_voice_mode >= 2 %}  {# 墓下 #}
-                    <span style="width: 20%; height:200px; float:left;">
-                        <img src="{% static 'pywolf/chips' %}{{particant.chip.image_file_path}}"/>
-                    </span>
-                    <span style="width: 80%; height:200px;">
-                        <form action="{% url 'pywolf:confirm' village.village_no day_no %}" method="post">
-                            {% csrf_token %}
-                            <textarea class="voice" style="width:300px; height:150px; background: linear-gradient(135deg, #7eb1d6 0%, #5f8aaa 41%, #000000 100%); border: solid 1.5px #222222;" name="voice"></textarea></br>
-                            <input type="hidden" name="voice_type" value="{{VOICE_TYPE_ID.grave}}">
-                            <input type="hidden" name="chip_pass" value="{{particant.chip.image_file_path}}">
-                            <input type="submit" value="発言">
-                        </form>
-                    </span>
-                {% endif %}
             {% endif %}
-            {% if progress.village_status == 0 and particant != False %}  {# 入村済みでプロローグの場合 #}
+            {% if progress.village_status == 0 and participant != False %}  {# 入村済みでプロローグの場合 #}
                 <form action="{% url 'pywolf:entry_cancel' village.village_no %}" method="post">
                     {% csrf_token %}
                     <input type="submit" value="村を去る">

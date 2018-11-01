@@ -16,7 +16,7 @@
     <div>この内容でよろしいですか？</div>
     <dir style="display:table;">
         <div style="display: table-cell; width:90px;">
-            <img src="/static/pywolf/chips{{chip_pass}}" />
+            <img src="{% static chip_pass %}" style="width:{{chip_width}}px; height:{{chip_height}}px;"/>
         </div>
         <div style="display: table-cell; vertical-align:top;">
         {% if voice_type == VOICE_TYPE_ID_NORMAL %}<dir class="voice_window_common voice_window_normal">

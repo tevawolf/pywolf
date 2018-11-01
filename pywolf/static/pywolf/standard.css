@@ -37,7 +37,7 @@ textarea.voice {
                YuGothic,         /* Macの游ゴシック */
                Meiryo;           /* 游ゴシックが入っていないWindows */
     font-size: 12px;
-    border:none;
+    border:solid 1.5px #000000;
     border-radius:10px;
     box-shadow: none;
     padding: 2px 8px;

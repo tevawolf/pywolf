@@ -8,6 +8,7 @@ import hashlib
 
 
 def vote(request, village_no, day_no):
+    """投票処理"""
     vote_id = request.POST['vote']
     login_id = request.session.get('login_id', False)
     participant = VillageParticipant.objects.get(village_no=village_no, pl=login_id, cancel_flg=False)
