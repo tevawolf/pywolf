@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <title>蛇狼独立領</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'pywolf/standard.css' %}" />
+    <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
 </head>
 <body>
+{% include 'pywolf/login_selectstyle.html' with V=0 D=0 %}
 {% if pl_list %}
     現在存在するアカウントの一覧
     <ul>

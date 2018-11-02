@@ -22,6 +22,8 @@ from .models.pywolf.masters import MSysMessageSet
 from .models.pywolf.masters import MSysMessage
 from .models.pywolf.masters import MOrganizationSet
 from .models.pywolf.masters import MOrganization
+from .models.pywolf.masters import MStyleSheetSet
+from .models.pywolf.masters import MStyleSheet
 
 admin.site.register(PLAccount)
 
@@ -29,12 +31,12 @@ admin.site.register(PLAccount)
 #村
 class VillageVoiceSettingInline(admin.TabularInline):
     model = VillageVoiceSetting
-    extra = 1
+    extra = 3
 
 
 class VillageOrganizationInline(admin.TabularInline):
     model = VillageOrganization
-    extra = 1
+    extra = 5
 
 
 class VillageAdmin(admin.ModelAdmin):
@@ -103,7 +105,7 @@ admin.site.register(MPositionVoiceSetting, MPositionVoiceSettingAdmin)
 # 発言設定セット
 class VoiceSettingInline(admin.TabularInline):
     model = MVoiceSetting
-    extra = 1
+    extra = 3
 
 
 class VoiceSettingAdmin(admin.ModelAdmin):
@@ -117,7 +119,7 @@ admin.site.register(MVoiceSettingSet, VoiceSettingAdmin)
 # チップセット
 class ChipInline(admin.TabularInline):
     model = MChip
-    extra = 1
+    extra = 20
 
 
 class ChipsetAdmin(admin.ModelAdmin):
@@ -131,7 +133,7 @@ admin.site.register(MChipSet, ChipsetAdmin)
 # メッセージセット
 class MessageInline(admin.TabularInline):
     model = MSysMessage
-    extra = 1
+    extra = 20
 
 
 class MessagesetAdmin(admin.ModelAdmin):
@@ -145,7 +147,7 @@ admin.site.register(MSysMessageSet, MessagesetAdmin)
 # 編成セット
 class OrganizationInline(admin.TabularInline):
     model = MOrganization
-    extra = 1
+    extra = 5
 
 
 class OrganizationAdmin(admin.ModelAdmin):
@@ -154,3 +156,17 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MOrganizationSet, OrganizationAdmin)
+
+
+class StyleSheetInline(admin.TabularInline):
+    model = MStyleSheet
+    extra = 4
+
+
+class StyleSheetAdmin(admin.ModelAdmin):
+    list_display = ('stylesheet_set_name', )
+    inlines = [StyleSheetInline]
+    ordering = ('display_order', )
+
+
+admin.site.register(MStyleSheetSet, StyleSheetAdmin)

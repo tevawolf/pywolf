@@ -1,0 +1,33 @@
+    {# スタイルシート選択 #}
+    <form action="{% url 'pywolf:selectstyle' V D %}" method="post">
+        {% csrf_token %}
+        <div>スタイルシート：
+            <select name="stylesheet">
+                {% for set in stylesheet_set %}
+                <option value="{{set.id}}"
+                            {% if set.id == stylesheet.0.stylesheet_set_id %} selected {% endif %}
+                >{{set.stylesheet_set_name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="submit" value="選択">
+    </form>
+
+    {# ログイン・ログアウトフォーム #}
+    <div style="text-align:right;">
+    {% if login_info.login_user %}
+        <form action="{% url 'pywolf:logout' V D %}" method="post">
+            {% csrf_token %}
+            <span>id:{{ login_info.login_user }}</span>
+            <input type="submit" value="ログアウト">
+        </form>
+    {% else %}
+        <form action="{% url 'pywolf:login' V D %}" method="post">
+            {% csrf_token %}
+            <span>ID:</span><input type="text" name="id"/><br />
+            <span>パスワード:</span><input type="password" name="password"/><br />
+            <input type="submit" value="ログイン">
+        </form>
+        <span>{{ login_info.login_message }}</span>
+    {% endif %}
+    </div>

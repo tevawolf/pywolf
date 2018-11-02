@@ -4,6 +4,7 @@ from ..pywolf.masters import MPosition
 from ..pywolf.masters import MVoiceType
 from ..pywolf.masters import MChipSet
 from ..pywolf.masters import MChip
+from ..pywolf.masters import MStyleSheet
 
 
 class PLAccount(models.Model):
@@ -14,6 +15,7 @@ class PLAccount(models.Model):
     id = models.CharField(verbose_name='ID(内部)', primary_key=True, max_length=255)  # ID(内部)
     id_view = models.CharField(verbose_name='ID(表示用)', max_length=100)  # ID(表示用)
     password = models.CharField(verbose_name='パスワード', max_length=255)  # パスワード
+    select_style = models.ForeignKey(MStyleSheet, verbose_name='選択スタイルシート', on_delete=models.SET_NULL, null=True)
     commentary = models.TextField(verbose_name='説明', blank=True)  # 説明
     system_user_flg = models.BooleanField(verbose_name='システム用ユーザーフラグ', default=False)  # システム用ユーザーフラグ
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ

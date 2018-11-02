@@ -5,10 +5,10 @@
     <title>蛇狼独立領 村{{village.village_no}} {{village.village_name}}</title>
     {% load static %}
     {% load pywolf.lookup %}
-    <link rel="stylesheet" href="{% static css %}" />
-    <link rel="stylesheet" href="{% static css_win %}" />
-    <link rel="stylesheet" href="{% static css_textarea %}" />
-    <link rel="stylesheet" href="{% static 'pywolf/tabs.css' %}" />
+    <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.1.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.2.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.3.get_path %}" />
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="{% static 'pywolf/pywolf.js' %}" ></script>
     <script>
@@ -47,36 +47,23 @@
 </head>
 <body onload="inputCheck();">
     <a href="{% url 'pywolf:index' %}">トップページに戻る</a>
-    {# ログイン・ログアウトフォーム #}
-    <div style="text-align:right;">
-    {% if login_user %}
-        <form action="{% url 'pywolf:logout' village.village_no day_no %}" method="post">
-            {% csrf_token %}
-            <span>id:{{ login_user }}</span>
-            <input type="submit" value="ログアウト">
-        </form>
-    {% else %}
-        <form action="{% url 'pywolf:login' village.village_no day_no %}" method="post">
-            {% csrf_token %}
-            <span>ID:</span><input type="text" name="id"/><br />
-            <span>パスワード:</span><input type="password" name="password"/><br />
-            <input type="submit" value="ログイン">
-        </form>
-        <span>{{ login_message }}</span>
-    {% endif %}
-    </div>
-
+    {% include 'pywolf/login_selectstyle.html' with V=village.village_no D=day_no %}
     {# 村名・日数リンク、ページ数リンクなど #}
     <h1>{{village.village_no}} {{village.village_name}}<span style="font-size:11px;">({{village.update_time}}に更新)</span></h1>
-    <h2>{{ day_no }}日目</h2>
+    <h2>
+        {% for d in days %}
+        {% if d == 0 %}<a href="{% url 'pywolf:village' village.village_no d %}">プロローグ&nbsp;</a>
+        {% else %}<a href="{% url 'pywolf:village' village.village_no d %}">{{d}}日目&nbsp;</a>{% endif %}
+        {% endfor %}
+    </h2>
 
     {# 発言ログ 表示・非表示の制御 #}
     {# ★★エピったらフルオープンになる機能をどう実装するか★★ #}
     {% for voice in voices %}
-        {% if login_user %}
+        {% if login_info.login_user %}
             {% if participant %}
             {# ログインかつ入村後は、他参加者の発言の種別を見て、表示・非表示を判定 #}
-                {% if voice.village_participant.pl.id_view != login_user %}
+                {% if voice.village_participant.pl.id_view != login_info.login_user %}
                     {# 他参加者の発言 #}
                     {% for vs in voice_settings %}
                         {% if voice.voice_type.id == vs.voice_type_id %}  {# 発言種別を自分の発言設定と照合 #}
@@ -113,7 +100,7 @@
         {% endif %}
     {% endfor %}
 
-    {% if login_user %}  {# ログインしていれば、発言など入力欄 #}
+    {% if login_info.login_user %}  {# ログインしていれば、発言など入力欄 #}
         {% if progress.village_status == 0 and participant == False %}  {# プロローグで入村前の場合、入村フォーム #}
             <form action="{% url 'pywolf:entry' village.village_no %}" method="post">
                 {% csrf_token %}
@@ -157,7 +144,7 @@
                         <div class="tab_content_description">
                             <span>{{ participant.description }}{{ participant.character_name }}</span>
                             <span style="width: 20%; height:100%; float:left;">
-                                <img src="{% static participant.chip.getPath %}"
+                                <img src="{% static participant.chip.get_path %}"
                                  style="width:{{participant.chip.image_width}}px;
                                  height:{{participant.chip.image_height}}px;"/>
                             </span>
@@ -210,29 +197,33 @@
                                     {% endif %}
                                     <textarea id="voice_input_area" class="voice voice_textarea_common voice_textarea_normal" name="voice" oninput="inputCheck();"></textarea></br>
                                     <span><span id="voice_input_number"></span>/200文字 <span id="voice_input_line"></span>/20行</span>
-                                    <input type="hidden" name="chip_pass" value="{{participant.chip.getPath}}">
+                                    <input type="hidden" name="chip_pass" value="{{participant.chip.get_path}}">
                                     <input type="hidden" name="chip_width" value="{{participant.chip.image_width}}">
                                     <input type="hidden" name="chip_height" value="{{participant.chip.image_height}}">
                                     <input type="submit" name="voice_submit" value="発言">
                                 </form>
                                 {% if participant.status == 0 and participant.position.fortune_enable_flg == True and progress.village_status == 1 %}  {# 進行中・占い可能役職・ログイン参加者が生存なら占いフォーム表示 #}
-                                <form name="fortune" action="{% url 'pywolf:fortune' village.village_no day_no %}" method="post">
+                                <form name="fortune_form" action="{% url 'pywolf:fortune' village.village_no day_no %}" method="post">
                                     {% csrf_token %}
-                                    {% for day, name in fortune.items %}
-                                        <span>{{day}}日に{{name}}を占い、{{fortune_result | lookup:day }}だった。</span><br />
+                                    {% for day, object in fortune_result.items %}
+                                        {% if day != day_no %}
+                                        <span>{{day}}日に{{object.character_name}}を占い、{{object.result}}だった。</span><br />
+                                        {% endif %}
                                     {% endfor %}
                                     <div>占い先：
                                         <select name="fortune">
                                             <option value="">(選択してください)</option>
                                             {% for part in parts %}
                                                 {% if part.status == 0 %}
-                                                    <option value="{{part.pl.id_view}}">{{part.character_name}}</option>
+                                                    <option value="{{part.pl.id_view}}"
+                                                            {% if fortune_set and part.pl.id == fortune_set.pl.id %} selected {% endif %}
+                                                    >{{part.character_name}}</option>
                                                 {% endif %}
                                             {% endfor %}
                                         </select>
                                         <input type="submit" value="占いセット">
                                     </div>
-                                    {% if fortune %}<div>現在、{{ fortune | lookup:day_no }}に占いセットされています。</div>{% endif %}
+                                    {% if fortune_set %}<div>現在、{{fortune_set.character_name}}に占いセットされています。</div>{% endif %}
                                 </form>
                                 {% endif %}
                             </span>

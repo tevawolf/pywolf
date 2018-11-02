@@ -25,8 +25,13 @@ def login(request, village_no, day_no):
         request.session['login_id'] = id
         if request.session.get('login_message', False):
             del request.session['login_message']
+        request.session['stylesheet'] = account.select_style_id
     else:
         request.session['login_message'] = 'IDが存在しないか、passwordが間違っています。'
+
+    if village_no == 0 and day_no == 0:
+        # トップページに戻る  ★★もっといい方法はないものか・・・★★
+        return HttpResponseRedirect(reverse('pywolf:index'))
 
     # 村メイン画面に戻る
     return HttpResponseRedirect(reverse('pywolf:village', args=(village_no, day_no,)))
