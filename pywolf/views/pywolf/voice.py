@@ -25,9 +25,12 @@ def voice(request, village_no, day_no):
     village = get_object_or_404(Village, pk=village_no)  # 村情報
 
     if(village.villageparticipantvoice_set.exists()):
-        lastvoice_type = \
-            village.villageparticipantvoice_set.filter(voice_type_id=VOICE_TYPE_ID['normal']).order_by('-voice_number')[0]
-        voice.voice_number = lastvoice_type.voice_number + 1
+        lastvoice = village.villageparticipantvoice_set.filter(voice_type_id=vt).order_by('-voice_number')
+        print(lastvoice)
+        if lastvoice:
+            voice.voice_number = lastvoice[0].voice_number + 1
+        else:
+            voice.voice_number = 0
 
         lastvoice_order = \
             village.villageparticipantvoice_set.order_by('-voice_order')[0]
@@ -46,3 +49,4 @@ def voice(request, village_no, day_no):
 
     # 村メイン画面に戻る
     return HttpResponseRedirect(reverse('pywolf:village', args=(village_no, day_no,)))
+

@@ -9,7 +9,7 @@
 <body>
 {% include 'pywolf/login_selectstyle.html' with V=0 D=0 %}
 {% if pl_list %}
-    現在存在するアカウントの一覧
+    <div>現在存在するアカウントの一覧</div>
     <ul>
     {% for pl in pl_list %}
         <li>{{ pl.id_view }}</li>
@@ -18,6 +18,8 @@
 {% else %}
     <p>No id are available.</p>
 {% endif %}
+    <div>村の作成</div>
+    <a href="{% url 'pywolf:create_village' %}">村を作成する</a>
 {% if village_list %}
     <div>現在進行中の村</div>
     <ul>

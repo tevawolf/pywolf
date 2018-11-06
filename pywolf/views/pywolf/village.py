@@ -43,6 +43,7 @@ def village(request, village_no, day_no):
     fortune_set = None
     guard = {}
     assault = {}
+    assault_set = None
     voice_settings = False
 
     if login_info['login_id']:
@@ -58,14 +59,21 @@ def village(request, village_no, day_no):
                 # 投票
                 today_ability = VillageParticipantExeAbility.objects.get(village_participant=participant, day_no=day_no)
                 if today_ability.vote:
-                    vote = village.villageparticipant_set.get(village_no=village_no, pl=today_ability.vote, cancel_flg=False).character_name
+                    vote = village.villageparticipant_set.get(village_no=village_no, pl=today_ability.vote, cancel_flg=False)
 
                 # 能力行使先を取得
                 all_ability = VillageParticipantExeAbility.objects.filter(village_participant=participant)
                 for i, ability in enumerate(all_ability):
                     # 襲撃
                     if ability.assault:
-                        assault[i] = village.villageparticipant_set.get(village_no=village_no, pl=ability.assault, cancel_flg=False).character_name
+                        if i == day_no:
+                            assault_set = village.villageparticipant_set.get(village_no=village_no, pl=ability.assault, cancel_flg=False)
+
+                        assault[i] = village.villageparticipant_set.get(village_no=village_no, pl=ability.assault, cancel_flg=False)
+                        if assault[i].status == 2:
+                            assault[i].result = '殺害'
+                        else:
+                            assault[i].result = '失敗'
                     # 占い
                     if ability.fortune:
                         if i == day_no:
@@ -93,7 +101,7 @@ def village(request, village_no, day_no):
     return render(request, "pywolf/village.html",
                   {'village': village,                       # 村情報
                    'day_no': day_no,                         # 日数
-                   'days': range(0, progress.day_no+1),               #　日にちリンク作成用リスト
+                   'days': range(0, progress.day_no+1),       #　日にちリンク作成用リスト
                    'voices': voices,                         # 発言
                    'login_info': login_info,                # ログイン情報
                    'participant': participant,              # ログインユーザ参加者情報
@@ -102,7 +110,8 @@ def village(request, village_no, day_no):
                    'VOICE_TYPE_ID': VOICE_TYPE_ID,          # 発言種別IDディクショナリ
                    'parts': parts,                           # 村参加者（投票・能力行使先）
                    'vote': vote,                             # 投票セット情報
-                   'assault': assault,                       # 襲撃セット情報
+                   'assault_result': assault,               # 襲撃結果情報
+                   'assault_set': assault_set,               # 襲撃セット情報
                    'fortune_result': fortune,               # 占い結果情報
                    'fortune_set': fortune_set,              # 占いセット情報
                    'guard': guard,                           # 護衛セット情報

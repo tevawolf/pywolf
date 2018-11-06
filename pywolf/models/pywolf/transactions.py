@@ -24,6 +24,26 @@ class PLAccount(models.Model):
         return self.id_view
 
 
+START_CLASS = (
+    (1, '自動'),
+    (2, '手動'),
+    (3, '定員'),
+)
+
+
+UPDATE_INTERVAL = (
+    (24, '24時間'),
+    (48, '48時間'),
+    (72, '72時間'),
+)
+
+
+VOICE_NUMBER_CLASS = (
+    (1, "回数制"),
+    (2, "ポイント(pt)制"),
+)
+
+
 class Village(models.Model):
     class Meta:
         verbose_name = "村"
@@ -33,11 +53,6 @@ class Village(models.Model):
     village_master_account = models.ForeignKey(PLAccount, verbose_name='村建てID', on_delete=models.SET("削除されたID"))  # 村建てID
     village_name = models.CharField(verbose_name='村名', max_length=255)  # 村名
     description = models.TextField(verbose_name='村説明', blank=True)  # 村説明
-    START_CLASS = (
-        (1, '自動'),
-        (2, '手動'),
-        (3, '定員'),
-    )
     start_class = models.SmallIntegerField(verbose_name='開始区分', choices=START_CLASS, default=1)  # 開始区分
     lowest_number = models.SmallIntegerField(verbose_name='最低人数', default=10)  # 最低人数
     max_number = models.SmallIntegerField(verbose_name='最大人数', default=16)  # 最大人数
@@ -45,19 +60,10 @@ class Village(models.Model):
     # 自動退村有無フラグ
     # 遅刻見学可否フラグ
     update_time = models.TimeField(verbose_name='更新時間')  # 更新時間
-    UPDATE_INTERVAL = (
-        (24, '24時間'),
-        (48, '48時間'),
-        (72, '72時間'),
-    )
     update_interval = models.SmallIntegerField(verbose_name='更新間隔', choices=UPDATE_INTERVAL, default=24)  # 更新間隔
     start_scheduled_date = models.DateField(verbose_name='村開始予定日')  # 村開始予定日
     abolition_date = models.DateField(verbose_name='廃村日')  # 廃村日
     # 編成隠蔽フラグ
-    VOICE_NUMBER_CLASS = (
-        (1, "回数制"),
-        (2, "ポイント(pt)制"),
-    )
     voice_number_class = models.SmallIntegerField(verbose_name='発言数区分', choices=VOICE_NUMBER_CLASS, default=1)  # 発言数区分
     # 曖昧残喉フラグ
     # 発言促し回数

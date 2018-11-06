@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>蛇狼独立領　村の作成</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
+</head>
+<body>
+{% include 'pywolf/login_selectstyle.html' with V=0 D=0 %}
+<div>
+    <form action="" method="post">
+        <div><span>村の名前：</span><span><input type="text" name="village_name"/></span></div>
+        <div><span>村の説明：</span><span><textarea name="description"></textarea></span></div>
+        <div><span>開始方法：</span><span><select name="start_class"></select></span></div>
+        <div><span>最低開始人数：</span><span><input type="text" name="lowest_number"/></span></div>
+        <div><span>最大開始人数：</span><span><input type="text" name="max_number"/></span></div>
+        <div><span>入村パスワード：</span><span><input type="password" name="into_password"/></span></div>
+        <div><span>更新時間：</span><span><select name="update_time_hour"></select><select name="update_time_minute"></select></span></div>
+        <div><span>更新間隔：</span><span><select name="update_interval"></select></span></div>
+        <div><span>開始予定日：</span><span><input type="text" name="lowest_number"/></span></div>
+        <div><span>発言量タイプ(回数制/pt制)：</span><span><select name="voice_number_class"></select></span></div>
+        <div><span>チップセット：</span><span><select name="system_message"></select></span></div>
+        <div><span>システム文章：</span><span><select name="chip_set"></select></span></div>
+    </form>
+</div>
+</body>
+</html>

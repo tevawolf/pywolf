@@ -58,9 +58,9 @@ def entry(request, village_no):
     voice.village_participant = participant
     voice.voice_type = MVoiceType.objects.get(pk=VOICE_TYPE_ID['normal'])
     if(village.villageparticipantvoice_set.exists()):
-        lastvoice_type = \
-            village.villageparticipantvoice_set.filter(voice_type_id=VOICE_TYPE_ID['normal']).order_by('-voice_number')[0]
-        voice.voice_number = lastvoice_type.voice_number + 1
+        lastvoice = village.villageparticipantvoice_set.filter(voice_type_id=VOICE_TYPE_ID['normal']).order_by('-voice_number')
+        if lastvoice:
+            voice.voice_number = lastvoice[0].voice_number + 1
 
         lastvoice_order = \
             village.villageparticipantvoice_set.order_by('-voice_order')[0]

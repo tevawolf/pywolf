@@ -52,50 +52,60 @@
     <h1>{{village.village_no}} {{village.village_name}}<span style="font-size:11px;">({{village.update_time}}に更新)</span></h1>
     <h2>
         {% for d in days %}
-        {% if d == 0 %}<a href="{% url 'pywolf:village' village.village_no d %}">プロローグ&nbsp;</a>
-        {% else %}<a href="{% url 'pywolf:village' village.village_no d %}">{{d}}日目&nbsp;</a>{% endif %}
+            {% if d == 0 %}
+                {% if d != day_no %}<a href="{% url 'pywolf:village' village.village_no d %}">プロローグ&nbsp;</a>
+                {% else %}プロローグ{% endif %}
+            {% else %}
+                {% if d != day_no %}<a href="{% url 'pywolf:village' village.village_no d %}">{{d}}日目&nbsp;</a>
+                {% else %}{{d}}日目{% endif %}
+            {% endif %}
         {% endfor %}
     </h2>
 
     {# 発言ログ 表示・非表示の制御 #}
-    {# ★★エピったらフルオープンになる機能をどう実装するか★★ #}
     {% for voice in voices %}
-        {% if login_info.login_user %}
-            {% if participant %}
-            {# ログインかつ入村後は、他参加者の発言の種別を見て、表示・非表示を判定 #}
-                {% if voice.village_participant.pl.id_view != login_info.login_user %}
-                    {# 他参加者の発言 #}
-                    {% for vs in voice_settings %}
-                        {% if voice.voice_type.id == vs.voice_type_id %}  {# 発言種別を自分の発言設定と照合 #}
-                            {% if vs.speech_hear_mode != 0 and vs.speech_hear_mode != 2 %}  {# モードが条件に合うか #}
-                                {% if participant.status != 0 %}  {# 死亡時 墓下のみ表示 #}
-                                    {% if voice.voice_type.id == VOICE_TYPE_ID.grave %}
-                                        {% include 'pywolf/voice_window.html' %}
+        {% if progress.village_status == 2 or progress.village_status == 3 %}
+            {# エピ・終了後はフルオープン #}
+            {% include 'pywolf/voice_window.html' %}
+        {% else %}
+            {# プロ・進行中 #}
+            {% if login_info.login_user %}
+                {% if participant %}
+                {# ログインかつ入村後は、他参加者の発言の種別を見て、表示・非表示を判定 #}
+                    {% if voice.village_participant.pl.id_view != login_info.login_user %}
+                        {# 他参加者の発言 #}
+                        {% for vs in voice_settings %}
+                            {% if voice.voice_type.id == vs.voice_type_id %}  {# 発言種別を自分の発言設定と照合 #}
+                                {% if vs.speech_hear_mode != 0 and vs.speech_hear_mode != 2 %}  {# モードが条件に合うか #}
+                                    {% if participant.status != 0 %}  {# 死亡時 墓下のみ表示 #}
+                                        {% if voice.voice_type.id == VOICE_TYPE_ID.grave %}
+                                            {% include 'pywolf/voice_window.html' %}
+                                        {% endif %}
+                                    {% else %}  {# 死亡時以外 #}
+                                         {% include 'pywolf/voice_window.html' %}
                                     {% endif %}
-                                {% else %}  {# 死亡時以外 #}
-                                     {% include 'pywolf/voice_window.html' %}
                                 {% endif %}
                             {% endif %}
-                        {% endif %}
-                    {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        {# 自分の発言はすべて表示 #}
+                        {% include 'pywolf/voice_window.html' %}
+                    {% endif %}
+                {# ログイン後も入村していなければ、強制的に通常発言・システム発言のみ #}
                 {% else %}
-                    {# 自分の発言はすべて表示 #}
-                    {% include 'pywolf/voice_window.html' %}
+                    {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}
+                        {% include 'pywolf/voice_window.html' %}
+                    {% elif voice.voice_type.id == VOICE_TYPE_ID.system %}
+                        {% include 'pywolf/voice_window.html' %}
+                    {% endif %}
                 {% endif %}
-            {# ログイン後も入村していなければ、強制的に通常発言・システム発言のみ #}
             {% else %}
+                {# 非ログイン時は強制的に通常発言・システム発言のみ #}
                 {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}
                     {% include 'pywolf/voice_window.html' %}
                 {% elif voice.voice_type.id == VOICE_TYPE_ID.system %}
                     {% include 'pywolf/voice_window.html' %}
                 {% endif %}
-            {% endif %}
-        {% else %}
-            {# 非ログイン時は強制的に通常発言・システム発言のみ #}
-            {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}
-                {% include 'pywolf/voice_window.html' %}
-            {% elif voice.voice_type.id == VOICE_TYPE_ID.system %}
-                {% include 'pywolf/voice_window.html' %}
             {% endif %}
         {% endif %}
     {% endfor %}
@@ -134,6 +144,8 @@
                 <div class="tabs">  {# システム欄（発言、フィルタ、村情報、進行情報）をタブ化 #}
                     <input id="voice" type="radio" name="tab_item" checked>
                     <label class="tab_item" for="voice">発言・投票・能力行使</label>
+                    <input id="check" type="radio" name="tab_item">
+                    <label class="tab_item" for="check">イイね(チェック)</label>
                     <input id="filter" type="radio" name="tab_item">
                     <label class="tab_item" for="filter">フィルタ</label>
                     <input id="village" type="radio" name="tab_item">
@@ -142,7 +154,7 @@
                     <label class="tab_item" for="progress">進行情報</label>
                     <div class="tab_content" id="voice_content">
                         <div class="tab_content_description">
-                            <span>{{ participant.description }}{{ participant.character_name }}</span>
+                            <span>{{ participant.description }}&nbsp;{{ participant.character_name }}</span>
                             <span style="width: 20%; height:100%; float:left;">
                                 <img src="{% static participant.chip.get_path %}"
                                  style="width:{{participant.chip.image_width}}px;
@@ -157,13 +169,13 @@
                                             <option value="">(選択してください)</option>
                                             {% for part in parts %}
                                                 {% if part.status == 0 %}
-                                                    <option value="{{part.pl.id_view}}">{{part.character_name}}</option>
+                                                    <option value="{{part.pl.id_view}}">{{part.description}}&nbsp;{{part.character_name}}</option>
                                                 {% endif %}
                                             {% endfor %}
                                         </select>
                                         <input type="submit" value="投票セット">
                                     </div>
-                                    {% if vote %}<div>現在、{{ vote }}に投票セットされています。</div>{% endif %}
+                                    {% if vote %}<div>現在、{{vote.description}}&nbsp;{{ vote.character_name }}に投票セットされています。</div>{% endif %}
                                 </form>
                                 {% endif %}
                                 <form name="voice" action="{% url 'pywolf:confirm' village.village_no day_no %}" method="post">
@@ -202,12 +214,13 @@
                                     <input type="hidden" name="chip_height" value="{{participant.chip.image_height}}">
                                     <input type="submit" name="voice_submit" value="発言">
                                 </form>
-                                {% if participant.status == 0 and participant.position.fortune_enable_flg == True and progress.village_status == 1 %}  {# 進行中・占い可能役職・ログイン参加者が生存なら占いフォーム表示 #}
+                                {# 進行中・占い可能役職・ログイン参加者が生存なら占いフォーム表示 #}
+                                {% if participant.status == 0 and participant.position.fortune_enable_flg == True and progress.village_status == 1 %}
                                 <form name="fortune_form" action="{% url 'pywolf:fortune' village.village_no day_no %}" method="post">
                                     {% csrf_token %}
                                     {% for day, object in fortune_result.items %}
                                         {% if day != day_no %}
-                                        <span>{{day}}日に{{object.character_name}}を占い、{{object.result}}だった。</span><br />
+                                        <span>{{day}}日に{{object.description}}&nbsp;{{object.character_name}}を占い、{{object.result}}だった。</span><br />
                                         {% endif %}
                                     {% endfor %}
                                     <div>占い先：
@@ -216,17 +229,47 @@
                                             {% for part in parts %}
                                                 {% if part.status == 0 %}
                                                     <option value="{{part.pl.id_view}}"
-                                                            {% if fortune_set and part.pl.id == fortune_set.pl.id %} selected {% endif %}
-                                                    >{{part.character_name}}</option>
+                                                        {% if fortune_set and part.pl.id == fortune_set.pl.id %} selected {% endif %}
+                                                    >{{part.description}}&nbsp;{{part.character_name}}</option>
                                                 {% endif %}
                                             {% endfor %}
                                         </select>
                                         <input type="submit" value="占いセット">
                                     </div>
-                                    {% if fortune_set %}<div>現在、{{fortune_set.character_name}}に占いセットされています。</div>{% endif %}
+                                    {% if fortune_set %}<div>現在、{{fortune_set.description}}&nbsp;{{fortune_set.character_name}}に占いセットされています。</div>{% endif %}
+                                </form>
+                                {% endif %}
+                                {# 進行中・襲撃可能役職・ログイン参加者が生存なら襲撃フォーム表示 #}
+                                {% if participant.status == 0 and participant.position.assault_enable_flg == True and progress.village_status == 1 %}
+                                <form name="assault_form" action="{% url 'pywolf:assault' village.village_no day_no %}" method="post">
+                                    {% csrf_token %}
+                                    {% for day, object in assault_result.items %}
+                                        {% if day != day_no %}
+                                        <span>{{day}}日に{{object.description}}&nbsp;{{object.character_name}}を襲撃し、{{object.result}}した。</span><br />
+                                        {% endif %}
+                                    {% endfor %}
+                                    <div>襲撃先：
+                                        <select name="assault">
+                                            <option value="">(選択してください)</option>
+                                            {% for part in parts %}
+                                                {% if part.status == 0 %}
+                                                    <option value="{{part.pl.id_view}}"
+                                                        {% if assault_set and part.pl.id == assault_set.pl.id %} selected {% endif %}
+                                                    >{{part.description}}&nbsp;{{part.character_name}}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <input type="submit" value="襲撃セット">
+                                    </div>
+                                    {% if assault_set %}<div style="color:#ff6666;">現在、{{assault_set.description}}&nbsp;{{assault_set.character_name}}に襲撃セットされています。</div>{% endif %}
                                 </form>
                                 {% endif %}
                             </span>
+                        </div>
+                    </div>
+                    <div class="tab_content" id="check_content">
+                        <div class="tab_content_description">
+                            イイね（発言チェック）機能
                         </div>
                     </div>
                     <div class="tab_content" id="filter_content">

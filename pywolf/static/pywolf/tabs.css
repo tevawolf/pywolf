@@ -6,7 +6,7 @@
 }
 /*タブのスタイル*/
 .tab_item {
-	width: calc(100%/4);
+	width: calc(100%/5);
 	height: 40px;
 /*	border-bottom: 3px solid #5ab4bd; */
 	border-bottom: 3px solid #F13C3C;
@@ -39,6 +39,7 @@ input[name="tab_item"] {
 }
 /*選択されているタブのコンテンツのみを表示*/
 #voice:checked ~ #voice_content,
+#check:checked ~ #check_content,
 #filter:checked ~ #filter_content,
 #village:checked ~ #village_content,
 #progress:checked ~ #progress_content {
