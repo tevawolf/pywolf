@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models.pywolf.transactions import PLAccount
 from .models.pywolf.transactions import Village
 from .models.pywolf.transactions import VillageVoiceSetting
-from .models.pywolf.transactions import VillageOrganizationSet
+from .models.pywolf.transactions import VillageOrganizationSetting
 from .models.pywolf.transactions import VillageOrganization
 from .models.pywolf.transactions import VillageProgress
 from .models.pywolf.transactions import VillageParticipant
@@ -52,7 +52,7 @@ class VillageOrganizationSetAdmin(admin.ModelAdmin):
     inlines = [VillageOrganizationInline]
 
 
-admin.site.register(VillageOrganizationSet, VillageOrganizationSetAdmin)
+admin.site.register(VillageOrganizationSetting, VillageOrganizationSetAdmin)
 admin.site.register(VillageProgress)
 
 

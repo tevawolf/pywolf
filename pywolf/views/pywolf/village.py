@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 
 from ...models.pywolf.transactions import Village
-from ...models.pywolf.transactions import VillageOrganizationSet
+from ...models.pywolf.transactions import VillageOrganizationSetting
 from ...models.pywolf.transactions import VillageOrganization
 from ...models.pywolf.transactions import VillageParticipantExeAbility
 from ...models.pywolf.masters import MVoiceType
@@ -11,6 +11,7 @@ from ...models.pywolf.masters import MPositionVoiceSetting
 from ...models.pywolf.masters import MChip
 from ...models.pywolf.masters import MPosition
 from ...models.pywolf.masters import MStyleSheetSet
+from ...models.pywolf.masters import MOrganizationPositionNumber
 from ...common.common import get_stylesheet
 from ...common.common import get_login_info
 
@@ -29,11 +30,15 @@ def village(request, village_no, day_no):
     # プロローグの場合、村役職情報（希望役職選択に使う）
     positions = []
     if progress.village_status == 0:
-        # 村の最大人数で、村編成セットから設定役職を重複なしで取得する
-        orgset = get_object_or_404(VillageOrganizationSet, village_no_id=village_no)
-        organizations = VillageOrganization.objects.filter(organization_id=orgset.id)
+        orgset = VillageOrganizationSetting.objects.filter(village_no_id=village_no)
+        if orgset:
+            # 村編成設定から設定役職を取得する
+            organizations = VillageOrganization.objects.filter(village_no_=orgset.id)
+        else:
+            # 編成マスタ情報から編成に含まれる役職を取得する
+            organizations = MOrganizationPositionNumber.objects.filter(organization_id=village.organization_setting_id)
         for org in organizations:
-            positions.append(MPosition.objects.get(id=org.position_id))
+            positions.append(MPosition.objects.get(id=org.position_id_id))
 
     # ログインユーザーの村参加情報取得
     login_info = get_login_info(request)

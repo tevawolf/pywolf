@@ -6,6 +6,7 @@ from ..pywolf.masters import MVoiceType
 from ..pywolf.masters import MChipSet
 from ..pywolf.masters import MChip
 from ..pywolf.masters import MStyleSheet
+from ..pywolf.masters import MOrganizationSet
 
 
 class PLAccount(models.Model):
@@ -31,6 +32,7 @@ class Village(models.Model):
         verbose_name = "村"
         verbose_name_plural = "村情報"
         db_table = 'village'
+        get_latest_by = 'village_no'
 
     village_no = models.AutoField(verbose_name='村No', primary_key=True)  # 村No
     village_master_account = models.ForeignKey(PLAccount, verbose_name='村建てID', on_delete=models.SET("削除されたID"))  # 村建てID
@@ -74,8 +76,8 @@ class Village(models.Model):
     # アクション回数
     # 投票方法区分
     chip_set = models.ForeignKey(MChipSet, verbose_name='チップセット', on_delete=models.PROTECT)  # チップセット
-    system_message = models.ForeignKey(MSysMessageSet, verbose_name='システム文章',
-                                       on_delete=models.PROTECT)  # システム文章
+    system_message = models.ForeignKey(MSysMessageSet, verbose_name='システム文章', on_delete=models.PROTECT)
+    organization_setting = models.ForeignKey(MOrganizationSet, verbose_name='編成セット(村作成時の設定)', on_delete=models.PROTECT)
     # 役職希望可否フラグ
     # 自殺票可否フラグ
     # 突然死有無フラグ
@@ -87,19 +89,18 @@ class Village(models.Model):
         return "{0}村:{1}".format(self.village_no, self.village_name)
 
 
-class VillageOrganizationSet(models.Model):
+class VillageOrganizationSetting(models.Model):
     class Meta:
-        verbose_name = "村編成セット"
-        verbose_name_plural = "村編成セット"
-        db_table = 'village_organization_set'
+        verbose_name = "村編成設定"
+        verbose_name_plural = "村編成設定"
+        db_table = 'village_organization_setting'
 
     village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
-    organization_set_name = models.CharField(verbose_name='編成セット名称', max_length=100)  # 編成セット名称
     participant_number = models.SmallIntegerField(verbose_name='参加者数')  # 参加者数
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
     def __str__(self):
-        return "{0} {1}".format(self.village_no, self.organization_set_name)
+        return "{0} {1}人".format(self.village_no, self.participant_number)
 
 
 class VillageOrganization(models.Model):
@@ -107,10 +108,9 @@ class VillageOrganization(models.Model):
         verbose_name = "村編成"
         verbose_name_plural = "村編成"
         db_table = 'village_organization'
-        unique_together = ("organization", "serial_number")
+        unique_together = ("organization", "position")
 
-    organization = models.ForeignKey(VillageOrganizationSet, verbose_name='編成セット', on_delete=models.CASCADE)  # 編成セット
-    serial_number = models.SmallIntegerField(verbose_name='連番')  # 連番
+    organization = models.ForeignKey(VillageOrganizationSetting, verbose_name='村編成設定', on_delete=models.CASCADE)
     position = models.ForeignKey(MPosition, verbose_name='役職', on_delete=models.PROTECT)  # 役職
     number = models.SmallIntegerField(verbose_name='人数')  # 人数
 

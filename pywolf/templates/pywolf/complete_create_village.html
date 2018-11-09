@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>蛇狼独立領　村建て完了</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.4.get_path %}" />
+</head>
+<body>
+<div>
+    <h2>村建て完了</h2>
+    <div><span>{{village.village_no}}:{{village.village_name}}の作成が完了しました</span></div>
+    <a href="{% url 'pywolf:index' %}">トップページに戻る</a>
+</div>
+</body>
+</html>

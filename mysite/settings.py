@@ -84,6 +84,7 @@ DATABASES = {
         'NAME': 'pywolf',
         'USER': 'tevasaki',
         'PASSWORD': 'teVa0210',
+        'ATOMIC_REQUESTS': True,
         'OPTIONS': {
           'autocommit': False,
         },

@@ -8,22 +8,52 @@
     <link rel="stylesheet" href="{% static stylesheet.4.get_path %}" />
 </head>
 <body>
-{% include 'pywolf/login_selectstyle.html' with V=999999 D=999999 %}
 <div>
     <div>この内容でよろしいですか？</div>
     <div class="container-main">
         <h2>基本設定</h2>
         <div><span class="left">{{form.village_name.label}}：</span><span>{{form.cleaned_data.village_name}}</span></div>
+        <div><span class="left">{{form.description.label}}：</span><span>{{form.cleaned_data.description}}</span></div>
+        <div><span class="left">{{form.start_class.label}}：</span><span>{{start_class_str}}</span></div>
+        <div><span class="left">{{form.lowest_number.label}}：</span><span>{{form.cleaned_data.lowest_number}}</span></div>
+        <div><span class="left">{{form.max_number.label}}：</span><span>{{form.cleaned_data.max_number}}</span></div>
+        <div><span class="left">{{form.into_password.label}}：</span><span>{{password_setting}}</span></div>
+        <div><span class="left">更新時間：</span>
+            <span>{{form.cleaned_data.update_time_hour}}<span>{{form.update_time_hour.label}}</span>
+                {{form.cleaned_data.update_time_minute}}<span>{{form.update_time_minute.label}}</span></span>
+        </div>
+        <div><span class="left">{{form.update_interval.label}}：</span><span>{{update_interval_str}}</span></div>
+        <div><span class="left">{{form.start_scheduled_date.label}}：</span><span>{{form.cleaned_data.start_scheduled_date}}</span></div>
+        <div><span class="left">{{form.voice_number_class.label | safe}}：</span><span>{{voice_number_class_str}}</span></div>
+        <div><span class="left">{{form.chip_set.label}}：</span><span>{{form.cleaned_data.chip_set}}</span></div>
+        <div><span class="left">{{form.system_message.label}}：</span><span>{{form.cleaned_data.system_message}}</span></div>
     </div>
     <div class="container-organization">
         <h2>編成</h2>
+        <div><span class="left">{{form.organization_setting.label}}：</span><span>{{form.cleaned_data.organization_setting}}</span></div>
     </div>
     <div class="container-voice">
         <h2>発言設定</h2>
+        <div><span class="left">{{form.voice_setting_set.label}}：</span><span>{{form.cleaned_data.voice_setting_set}}</span></div>
     </div>
-    <form action="" method="post">
+    <form action="{% url 'pywolf:exe_create_village' %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="village_name" value="{{form.cleaned_data.village_name}}"/>
+        <input type="hidden" name="description" value="{{form.cleaned_data.description}}"/>
+        <input type="hidden" name="start_class" value="{{form.cleaned_data.start_class}}"/>
+        <input type="hidden" name="lowest_number" value="{{form.cleaned_data.lowest_number}}"/>
+        <input type="hidden" name="max_number" value="{{form.cleaned_data.max_number}}"/>
+        <input type="hidden" name="into_password" value="{{hidden_password}}"/>
+        <input type="hidden" name="update_time_hour" value="{{form.cleaned_data.update_time_hour}}"/>
+        <input type="hidden" name="update_time_minute" value="{{form.cleaned_data.update_time_minute}}"/>
+        <input type="hidden" name="update_interval" value="{{form.cleaned_data.update_interval}}"/>
+        <input type="hidden" name="start_scheduled_date"
+               value="{{form.cleaned_data.start_scheduled_date.year}}-{{form.cleaned_data.start_scheduled_date.month}}-{{form.cleaned_data.start_scheduled_date.day}}"/>
+        <input type="hidden" name="voice_number_class" value="{{form.cleaned_data.voice_number_class}}"/>
+        <input type="hidden" name="chip_set" value="{{form.cleaned_data.chip_set.id}}"/>
+        <input type="hidden" name="system_message" value="{{form.cleaned_data.system_message.id}}"/>
+        <input type="hidden" name="organization_setting" value="{{form.cleaned_data.organization_setting.id}}"/>
+        <input type="hidden" name="voice_setting_set" value="{{form.cleaned_data.voice_setting_set.id}}"/>
         <button type="submit">決定</button><button type="button" onclick="history.back();">やりなおし</button>
     </form>
 </div>

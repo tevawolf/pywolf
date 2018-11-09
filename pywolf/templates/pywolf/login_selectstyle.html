@@ -9,8 +9,8 @@
                 >{{set.stylesheet_set_name}}</option>
                 {% endfor %}
             </select>
+            <input type="submit" value="選択">
         </div>
-        <input type="submit" value="選択">
     </form>
 
     {# ログイン・ログアウトフォーム #}
@@ -24,8 +24,8 @@
     {% else %}
         <form action="{% url 'pywolf:login' V D %}" method="post">
             {% csrf_token %}
-            <span>ID:</span><input type="text" name="id"/><br />
-            <span>パスワード:</span><input type="password" name="password"/><br />
+            <span>ID:</span><input type="text" name="id" style="width:80px;"/>
+            <span>パスワード:</span><input type="password" name="password" style="width:80px;"/><br />
             <input type="submit" value="ログイン">
         </form>
         <span>{{ login_info.login_message }}</span>

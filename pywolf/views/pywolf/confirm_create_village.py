@@ -1,33 +1,51 @@
 from django.shortcuts import render
 
-from ...common.common import get_login_info
-from ...models.pywolf.masters import MStyleSheetSet
 from ...common.common import get_stylesheet
+from ...models.pywolf.transactions import Village
 
 from ...forms.pywolf.create_village_form import VillageForm
+
+import hashlib
 
 
 def confirm_create_village(request):
     """村の作成　入力内容確認"""
 
-    # ログイン情報取得
-    login_info = get_login_info(request)
-
     # スタイルシート設定
-    stylesheet_set = MStyleSheetSet.objects.filter(delete_flg=False)
     stylesheet = get_stylesheet(request)
 
     form = VillageForm(request.POST)
     is_valid = form.is_valid()
 
+    # セレクトボックスの選択値は文字列に変換
+    start_class_str = get_choice_str(Village.START_CLASS, form.cleaned_data['start_class'])
+    update_interval_str = get_choice_str(Village.UPDATE_INTERVAL, form.cleaned_data['update_interval'])
+    voice_number_class_str = get_choice_str(Village.VOICE_NUMBER_CLASS, form.cleaned_data['voice_number_class'])
+
+    # パスワード設定あり／なし
+    hidden_password = ''
+    password_setting = 'なし'
+    if form.cleaned_data['into_password']:
+        password_setting = 'あり'
+        hidden_password = hashlib.sha256(form.cleaned_data['into_password'].encode('utf-8')).hexdigest()
+
     context = {
-        'login_info': login_info,
-        'stylesheet_set': stylesheet_set,
         'stylesheet': stylesheet,
         'form': form,
+        'start_class_str': start_class_str,
+        'update_interval_str': update_interval_str,
+        'voice_number_class_str': voice_number_class_str,
+        'hidden_password': hidden_password,
+        'password_setting': password_setting,
     }
 
     if not is_valid:
         return render(request, 'pywolf/create_village.html', context)
     else:
         return render(request, 'pywolf/confirm_create_village.html', context)
+
+
+def get_choice_str(choice, data):
+    for c in choice:
+        if c[0] == data:
+            return c[1]
