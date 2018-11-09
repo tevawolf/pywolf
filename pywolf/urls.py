@@ -3,6 +3,8 @@ from django.urls import path
 from .views.pywolf.index import index
 from .views.pywolf.village import village
 from .views.pywolf.create_village import create_village
+from .views.pywolf.confirm_create_village import confirm_create_village
+from .views.pywolf.exe_create_village import exe_create_village
 from .views.pywolf.confirm import confirm
 from .views.pywolf.voice import voice
 from .views.pywolf.login import login
@@ -18,6 +20,8 @@ app_name = 'pywolf'
 urlpatterns = [
     path('', index, name='index'),
     path('create_village/', create_village, name='create_village'),
+    path('confirm_create_village/', confirm_create_village, name='confirm_create_village'),
+    path('execute_create_village/', exe_create_village, name='exe_create_village'),
     path('selectstyle/int:village_no><int:day_no>', selectstyle, name='selectstyle'),
     path('village<int:village_no>/day<int:day_no>/', village, name='village'),
     path('village<int:village_no>/day<int:day_no>/confirm/', confirm, name='confirm'),

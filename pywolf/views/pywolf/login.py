@@ -16,7 +16,7 @@ def login(request, village_no, day_no):
     password = hashlib.sha256(password.encode('utf-8')).hexdigest()
 
     try:
-        account = PLAccount.objects.get(id=id, password=password)
+        account = PLAccount.objects.get(id=id, password=password, delete_flg=False)
     except:
         account = None
 

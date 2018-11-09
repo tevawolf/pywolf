@@ -7,7 +7,7 @@ from django.urls import reverse
 def entry_cancel(request, village_no):
     """退村処理"""
     participant = VillageParticipant.objects \
-        .filter(village_no=village_no, pl=request.session['login_id']).order_by('-sequence')[0]
+        .filter(village_no=village_no, pl=request.session['login_id'], cancel_flg=False).order_by('-sequence')[0]
 
     participant.cancel_flg = True
 

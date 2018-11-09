@@ -5,7 +5,7 @@ from ..models.pywolf.masters import MStyleSheet
 def get_stylesheet(request):
     # スタイルシート設定
     if 'stylesheet' in request.session:
-        sset = MStyleSheetSet.objects.get(id=request.session['stylesheet'])
+        sset = MStyleSheetSet.objects.get(id=request.session['stylesheet'], delete_flg=False)
     else:
         # セッションに設定がなければ、デフォルトのスタイルシートを指定する
         sset = MStyleSheetSet.objects.get(id=1)

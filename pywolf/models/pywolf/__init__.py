@@ -12,7 +12,7 @@ from .masters import MPositionVoiceSetting
 from .masters import MPosition
 from .masters import MVoiceType
 from .masters import MOrganizationSet
-from .masters import MOrganization
+from .masters import MOrganizationPositionNumber
 from .masters import MSysMessageSet
 from .masters import MSysMessage
 from .masters import MVoiceSettingSet

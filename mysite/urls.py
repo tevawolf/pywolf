@@ -16,6 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+admin.site.site_title = '蛇狼 データ管理サイト'
+admin.site.site_header = '蛇狼 データ管理サイト'
+admin.site.index_title = 'データ index'
+
 urlpatterns = [
     path('pywolf/', include('pywolf.urls')),
     path('admin/', admin.site.urls),

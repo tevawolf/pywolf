@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>蛇狼独立領　村の作成　内容確認</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.4.get_path %}" />
+</head>
+<body>
+{% include 'pywolf/login_selectstyle.html' with V=999999 D=999999 %}
+<div>
+    <div>この内容でよろしいですか？</div>
+    <div class="container-main">
+        <h2>基本設定</h2>
+        <div><span class="left">{{form.village_name.label}}：</span><span>{{form.cleaned_data.village_name}}</span></div>
+    </div>
+    <div class="container-organization">
+        <h2>編成</h2>
+    </div>
+    <div class="container-voice">
+        <h2>発言設定</h2>
+    </div>
+    <form action="" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="village_name" value="{{form.cleaned_data.village_name}}"/>
+        <button type="submit">決定</button><button type="button" onclick="history.back();">やりなおし</button>
+    </form>
+</div>
+</body>
+</html>

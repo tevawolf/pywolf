@@ -21,10 +21,10 @@ def village(request, village_no, day_no):
     # 各種情報取得
     # get_object_or_404ではエラーメッセージをカスタマイズできない？？
     village = get_object_or_404(Village, pk=village_no)  # 村情報
-    parts = village.villageparticipant_set.filter(village_no=village_no, system_user_flg=False, cancel_flg=False).order_by('id')  # 参加者（投票・能力行使先）
-    voices = village.villageparticipantvoice_set.filter(day_no=day_no).order_by('voice_order')  # 発言
+    parts = village.villageparticipant_set.filter(village_no=village_no, system_user_flg=False, cancel_flg=False, delete_flg=False).order_by('id')  # 参加者（投票・能力行使先）
+    voices = village.villageparticipantvoice_set.filter(day_no=day_no, delete_flg=False).order_by('voice_order')  # 発言
     progress = village.villageprogress_set.latest()  # 村進行情報(現在の）
-    chips = MChip.objects.filter(chip_set_id=village.chip_set_id)  # 村チップセット情報
+    chips = MChip.objects.filter(chip_set_id=village.chip_set_id, delete_flg=False)  # 村チップセット情報
 
     # プロローグの場合、村役職情報（希望役職選択に使う）
     positions = []
@@ -49,7 +49,7 @@ def village(request, village_no, day_no):
     if login_info['login_id']:
         # ログインプレイヤーの村参加情報を取得
         try:
-            participant = village.villageparticipant_set.get(village_no=village_no, pl=login_info['login_id'], cancel_flg=False)
+            participant = village.villageparticipant_set.get(village_no=village_no, pl=login_info['login_id'], cancel_flg=False, delete_flg=False)
 
             # 役職別発言設定を取得
             voice_settings = MPositionVoiceSetting.objects.filter(position=participant.position).order_by('voice_type_id')
@@ -92,10 +92,10 @@ def village(request, village_no, day_no):
         participant = False
 
     # （この村の情報ではない）マスタ情報
-    voice_type = MVoiceType.objects.all()  # 発言種別情報
+    voice_type = MVoiceType.objects.filter(delete_flg=False)  # 発言種別情報
 
     # スタイル設定
-    stylesheet_set = MStyleSheetSet.objects.all()
+    stylesheet_set = MStyleSheetSet.objects.filter(delete_flg=False)
     stylesheet = get_stylesheet(request)
 
     return render(request, "pywolf/village.html",

@@ -1,4 +1,5 @@
 from django.db import models
+from django.core import validators
 from ..pywolf.masters import MSysMessageSet
 from ..pywolf.masters import MPosition
 from ..pywolf.masters import MVoiceType
@@ -11,6 +12,7 @@ class PLAccount(models.Model):
     class Meta:
         verbose_name = "PLアカウント"
         verbose_name_plural = "PLアカウント"
+        db_table = 'pl_account'
 
     id = models.CharField(verbose_name='ID(内部)', primary_key=True, max_length=255)  # ID(内部)
     id_view = models.CharField(verbose_name='ID(表示用)', max_length=100)  # ID(表示用)
@@ -24,46 +26,45 @@ class PLAccount(models.Model):
         return self.id_view
 
 
-START_CLASS = (
-    (1, '自動'),
-    (2, '手動'),
-    (3, '定員'),
-)
-
-
-UPDATE_INTERVAL = (
-    (24, '24時間'),
-    (48, '48時間'),
-    (72, '72時間'),
-)
-
-
-VOICE_NUMBER_CLASS = (
-    (1, "回数制"),
-    (2, "ポイント(pt)制"),
-)
-
-
 class Village(models.Model):
     class Meta:
         verbose_name = "村"
         verbose_name_plural = "村情報"
+        db_table = 'village'
 
     village_no = models.AutoField(verbose_name='村No', primary_key=True)  # 村No
     village_master_account = models.ForeignKey(PLAccount, verbose_name='村建てID', on_delete=models.SET("削除されたID"))  # 村建てID
     village_name = models.CharField(verbose_name='村名', max_length=255)  # 村名
     description = models.TextField(verbose_name='村説明', blank=True)  # 村説明
+    START_CLASS = (
+        (1, '自動'),
+        (2, '手動'),
+        (3, '定員'),
+    )
     start_class = models.SmallIntegerField(verbose_name='開始区分', choices=START_CLASS, default=1)  # 開始区分
-    lowest_number = models.SmallIntegerField(verbose_name='最低人数', default=10)  # 最低人数
-    max_number = models.SmallIntegerField(verbose_name='最大人数', default=16)  # 最大人数
+    lowest_number = models.SmallIntegerField(verbose_name='最低人数', default=10,
+                                             validators=[validators.MinValueValidator(4),
+                                                         validators.MaxValueValidator(99)])  # 最低人数
+    max_number = models.SmallIntegerField(verbose_name='最大人数', default=16,
+                                          validators=[validators.MinValueValidator(4),
+                                                      validators.MaxValueValidator(99)])  # 最大人数
     into_password = models.CharField(verbose_name='入村パスワード', max_length=255, blank=True)  # 入村パスワード
     # 自動退村有無フラグ
     # 遅刻見学可否フラグ
     update_time = models.TimeField(verbose_name='更新時間')  # 更新時間
+    UPDATE_INTERVAL = (
+        (24, '24時間'),
+        (48, '48時間'),
+        (72, '72時間'),
+    )
     update_interval = models.SmallIntegerField(verbose_name='更新間隔', choices=UPDATE_INTERVAL, default=24)  # 更新間隔
     start_scheduled_date = models.DateField(verbose_name='村開始予定日')  # 村開始予定日
     abolition_date = models.DateField(verbose_name='廃村日')  # 廃村日
     # 編成隠蔽フラグ
+    VOICE_NUMBER_CLASS = (
+        (1, "回数制"),
+        (2, "ポイント(pt)制"),
+    )
     voice_number_class = models.SmallIntegerField(verbose_name='発言数区分', choices=VOICE_NUMBER_CLASS, default=1)  # 発言数区分
     # 曖昧残喉フラグ
     # 発言促し回数
@@ -90,6 +91,7 @@ class VillageOrganizationSet(models.Model):
     class Meta:
         verbose_name = "村編成セット"
         verbose_name_plural = "村編成セット"
+        db_table = 'village_organization_set'
 
     village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
     organization_set_name = models.CharField(verbose_name='編成セット名称', max_length=100)  # 編成セット名称
@@ -104,6 +106,7 @@ class VillageOrganization(models.Model):
     class Meta:
         verbose_name = "村編成"
         verbose_name_plural = "村編成"
+        db_table = 'village_organization'
         unique_together = ("organization", "serial_number")
 
     organization = models.ForeignKey(VillageOrganizationSet, verbose_name='編成セット', on_delete=models.CASCADE)  # 編成セット
@@ -116,6 +119,7 @@ class VillageVoiceSetting(models.Model):
     class Meta:
         verbose_name = "村発言設定"
         verbose_name_plural = "村発言設定"
+        db_table = 'village_voice_setting'
         unique_together = ("village_no", "voice_type")
 
     village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
@@ -133,6 +137,7 @@ class VillageParticipant(models.Model):
     class Meta:
         verbose_name = "村参加者"
         verbose_name_plural = "村参加者"
+        db_table = 'village_participant'
         unique_together = ("village_no", "pl", "sequence")
 
     village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
@@ -176,6 +181,7 @@ class VillageProgress(models.Model):
     class Meta:
         verbose_name = "村進行"
         verbose_name_plural = "村進行"
+        db_table = 'village_progress'
         unique_together = ("village_no", "day_no")
         get_latest_by = 'day_no'
 
@@ -198,6 +204,7 @@ class VillageParticipantVoiceStatus(models.Model):
     class Meta:
         verbose_name = "村参加者発言ステータス"
         verbose_name_plural = "村参加者発言ステータス"
+        db_table = 'village_participant_voice_status'
         unique_together = ("village_participant", "day_no", "voice_type")
 
     village_participant = models.ForeignKey(VillageParticipant, verbose_name='村参加者', on_delete=models.PROTECT)  # 村参加者ID
@@ -211,6 +218,7 @@ class VillageParticipantVoice(models.Model):
     class Meta:
         verbose_name = "村参加者発言"
         verbose_name_plural = "村参加者発言"
+        db_table = 'village_participant_voice'
         unique_together = ("village_no", "day_no", "voice_type", "voice_number")
 
     village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
@@ -232,6 +240,7 @@ class VillageParticipantExeAbility(models.Model):
     class Meta:
         verbose_name = "村参加者能力行使"
         verbose_name_plural = "村参加者能力行使"
+        db_table = 'village_participant_exe_ability'
         unique_together = ("village_participant", "day_no")
 
     village_participant = models.ForeignKey(VillageParticipant, verbose_name='村参加者', on_delete=models.PROTECT)  # 村参加者

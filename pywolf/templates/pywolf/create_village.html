@@ -5,76 +5,80 @@
     <title>蛇狼独立領　村の作成</title>
     {% load static %}
     <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.4.get_path %}" />
+    <link rel="stylesheet" href="{% static 'pywolf/jquery-ui-1.12.1/jquery-ui.min.css' %}" />
+    <script src="{% static 'pywolf/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'pywolf/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'pywolf/jquery-ui-1.12.1/datepicker-ja.js' %}"></script>
 </head>
 <body>
 {% include 'pywolf/login_selectstyle.html' with V=999999 D=999999 %}
 <div>
     <a href="{% url 'pywolf:index' %}">トップページに戻る</a>
-    <form action="" method="post">
-        <div>
-            <div><span>村の名前：</span><span><input type="text" name="village_name"/></span></div>
-            <div><span>村の説明：</span><span><textarea name="description"></textarea></span></div>
-            <div><span>開始方法：</span><span><select name="start_class">
-                {% for sc in START_CLASS %}
-                    <option value="{{sc.0}}">{{sc.1}}</option>
-                {% endfor %}
-            </select></span></div>
-            <div><span>最低開始人数：</span><span><input type="text" name="lowest_number"/></span></div>
-            <div><span>最大開始人数：</span><span><input type="text" name="max_number"/></span></div>
-            <div><span>入村パスワード：</span><span><input type="password" name="into_password"/></span></div>
-            <div><span>更新時間：</span><span>
-                <select name="update_time_hour">
-                {% for h in update_time_hour %}
-                    <option value="{{h}}">{{h}}</option>
-                {% endfor %}
-                </select><span>時</span>
-                <select name="update_time_minute">
-                {% for m in update_time_minute %}
-                    <option value="{{m}}">{{m}}</option>
-                {% endfor %}
-                </select><span>分</span>
-            </span></div>
-            <div><span>更新間隔：</span><span><select name="update_interval">
-                {% for ui in UPDATE_INTERVAL %}
-                    <option value="{{ui.0}}">{{ui.1}}</option>
-                {% endfor %}
-            </select></span></div>
-            <div><span>開始予定日：</span><span><input type="text" name="lowest_number"/></span></div>
-            <div><span>発言量タイプ(回数制/pt制)：</span><span><select name="voice_number_class">
-                {% for vnc in VOICE_NUMBER_CLASS %}
-                    <option value="{{vnc.0}}">{{vnc.1}}</option>
-                {% endfor %}
-            </select></span></div>
-            <div><span>チップセット：</span><span><select name="system_message"></select></span></div>
-            <div><span>システム文章：</span><span><select name="chip_set"></select></span></div>
+    <form action="{% url 'pywolf:confirm_create_village' %}" method="post">
+        {% csrf_token %}
+        <div class="container-main">
+            <h2>基本設定</h2>
+            <div><span class="left">{{form.village_name.label}}：</span><span>{{form.village_name}}</span></div>
+            <div><span class="left textarea_span">{{form.description.label}}：</span><span>{{form.description}}</span></div>
+            <div><span class="left">開始方法：</span><span>{{form.start_class}}</span></div>
+            <div><span class="left">最低開始人数：</span><span>{{form.lowest_number}}</span></div>
+            <div><span class="left">最大開始人数：</span><span>{{form.max_number}}</span></div>
+            <div><span class="left">入村パスワード：</span><span>{{form.into_password}}</span></div>
+            <div><span class="left">更新時間：</span>
+                <span>{{form.update_time_hour}}<span>時</span>{{form.update_time_minute}}<span>分</span></span>
+            </div>
+            <div><span class="left">更新間隔：</span><span>{{form.update_interval}}</select></span></div>
+            <div><span class="left">開始予定日：</span><span>{{form.start_scheduled_date}}</span>{{form.start_scheduled_date.errors.0}}</div>
+            <div><span class="left">発言量タイプ<br/>(回数制/pt制)：</span><span>{{form.voice_number_class}}</span></div>
+            <div><span class="left">チップセット：</span><span>{{form.chip_set}}</span></div>
+            <div><span class="left">システム文章：</span><span>{{form.system_message}}</span></div>
         </div>
-        <div>
+        <div class="container-organization">
             <h2>編成</h2>
-            <div><span>編成タイプ：</span><span><select name="organization_set"></select></span></div>
-            <h3>カスタマイズ</h3>
-            <div><span>役職：</span><span><select name="position1"></select></span><span><input type="text" name="number"/>人</span></div>
-            <div><span>役職：</span><span><select name="position2"></select></span><span><input type="text" name="number"/>人</span></div>
-            <div><span>役職：</span><span><select name="position3"></select></span><span><input type="text" name="number"/>人</span></div>
-            <div><span>役職：</span><span><select name="position4"></select></span><span><input type="text" name="number"/>人</span></div>
-            <div><span>役職：</span><span><select name="position5"></select></span><span><input type="text" name="number"/>人</span></div>
-            <div><span><button value="追加" onclick=""></button></span></div>
+            <div><span class="left">編成タイプ：</span><span>{{form.organization_set}}</span></div>
+            <!--<h3>カスタマイズ</h3>-->
+            <!--<div><span class="left">役職：</span><span><select name="position1">-->
+                <!--{% for p in position %}-->
+                    <!--<option value="{{p.id}}">{{p.position_name}}</option>-->
+                <!--{% endfor %}</select></span><span><input type="text" name="number"/>人</span></div>-->
+            <!--<div><span class="left">役職：</span><span><select name="position2">-->
+                <!--{% for p in position %}-->
+                    <!--<option value="{{p.id}}">{{p.position_name}}</option>-->
+                <!--{% endfor %}</select></span><span><input type="text" name="number"/>人</span></div>-->
+            <!--<div><span class="left">役職：</span><span><select name="position3">-->
+                <!--{% for p in position %}-->
+                    <!--<option value="{{p.id}}">{{p.position_name}}</option>-->
+                <!--{% endfor %}</select></span><span><input type="text" name="number"/>人</span></div>-->
+            <!--<div><span><button onclick="">追加</button></span></div>-->
         </div>
-        <div>
+        <div class="container-voice">
             <h2>発言設定</h2>
-            <div><span>通常発言</span><span><input type="text" name="voice_number_normal"/>回</span><span><input type="text" name="voice_point_normal"/>pt</span></div>
-            <div><span><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>
-            <div><span><input type="checkbox" name="prologue_limit_off_flg_normal"/><label>プロローグでの発言を無制限にする</label></span></div>
-            <div><span>ささやき</span><span><input type="text" name="voice_number_wolf"/>回</span><span><input type="text" name="voice_point_wolf"/>pt</span></div>
-            <div><span><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>
-            <div><span>独り言</span><span><input type="text" name="voice_number_self"/>回</span><span><input type="text" name="voice_point_self"/>pt</span></div>
-            <div><span><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>
-            <div><span><input type="checkbox" name="prologue_limit_off_flg_wolf"/><label>プロローグでの発言を無制限にする</label></span></div>
-            <div><span>墓下のうめき声</span><span><input type="text" name="voice_number_grave"/>回</span><span><input type="text" name="voice_number_grave"/>pt</span></div>
-            <div><span><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>
-            <div><span><input type="checkbox" name="prologue_limit_off_flg"/><label>発言を無制限にする</label></span></div>
+            <div><span class="left">設定セット：</span><span>{{form.voice_setting_set}}</span></div>
+            <!--<h3>カスタマイズ</h3>-->
+            <!--<div><span class="left">通常発言</span><span><input type="text" name="voice_number_normal"/>回</span><span><input type="text" name="voice_point_normal"/>pt</span></div>-->
+            <!--<div><span class="left"><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>-->
+            <!--<div><span class="left"><input type="checkbox" name="prologue_limit_off_flg_normal"/><label>プロローグでの発言を無制限にする</label></span></div>-->
+            <!--<div><span class="left">ささやき</span><span><input type="text" name="voice_number_wolf"/>回</span><span><input type="text" name="voice_point_wolf"/>pt</span></div>-->
+            <!--<div><span class="left"><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>-->
+            <!--<div><span class="left">独り言</span><span><input type="text" name="voice_number_self"/>回</span><span><input type="text" name="voice_point_self"/>pt</span></div>-->
+            <!--<div><span class="left"><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>-->
+            <!--<div><span class="left"><input type="checkbox" name="prologue_limit_off_flg_wolf"/><label>プロローグでの発言を無制限にする</label></span></div>-->
+            <!--<div><span class="left">墓下のうめき声</span><span><input type="text" name="voice_number_grave"/>回</span><span><input type="text" name="voice_number_grave"/>pt</span></div>-->
+            <!--<div><span class="left"><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>-->
+            <!--<div><span class="left"><input type="checkbox" name="prologue_limit_off_flg"/><label>発言を無制限にする</label></span></div>-->
         </div>
         <button type="submit">村を作成する</button>
     </form>
+    <!-- カレンダー -->
+    <script>
+      $(function() {
+          var dateFormat = 'yy-mm-dd';
+          $('#id_start_scheduled_date').datepicker({
+              dateFormat: dateFormat
+          });
+      });
+    </script>
 </div>
 </body>
 </html>

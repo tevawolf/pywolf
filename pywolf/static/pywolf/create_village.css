@@ -1,0 +1,50 @@
+div {
+    margin:     10px;
+}
+div[class|="container"] {
+    width:      500px;
+    border:     solid 1px;
+}
+
+span[class~="left"] {
+    display:        inline-block;
+    width:          100px;
+    text-align:     right;
+}
+
+span[class~="textarea_span"] {
+    vertical-align:     top;
+}
+
+input[name="village_name"] {
+    width:      300px;
+}
+textarea {
+    font-family:
+               YuGothicM,        /* Windows8.1以上は游ゴシック */
+               YuGothic,         /* Macの游ゴシック */
+               Meiryo;           /* 游ゴシックが入っていないWindows */
+    font-size: 12px;
+    border:solid 1.5px #000000;
+    border-radius:10px;
+    box-shadow: none;
+    padding: 2px 8px;
+    transition-duration:0.25s;  /* アニメーション速度 */
+}
+textarea:focus, textarea:hover {
+    border: solid 1.5px #01DF01 !important;  /* 枠線が浮き出る */
+}
+
+textarea[name="description"] {
+    width:      300px;
+    height:     200px;
+}
+input[name="lowest_number"] {
+    width:      30px;
+}
+input[name="max_number"] {
+    width:      30px;
+}
+input[name="into_password"] {
+    width:      100px;
+}

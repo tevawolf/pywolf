@@ -21,7 +21,8 @@ from .models.pywolf.masters import MChip
 from .models.pywolf.masters import MSysMessageSet
 from .models.pywolf.masters import MSysMessage
 from .models.pywolf.masters import MOrganizationSet
-from .models.pywolf.masters import MOrganization
+from .models.pywolf.masters import MOrganizationParticipantNumber
+from .models.pywolf.masters import MOrganizationPositionNumber
 from .models.pywolf.masters import MStyleSheetSet
 from .models.pywolf.masters import MStyleSheet
 
@@ -109,7 +110,7 @@ class VoiceSettingInline(admin.TabularInline):
 
 
 class VoiceSettingAdmin(admin.ModelAdmin):
-    list_display = ('voice_type_set_name', 'commentary')
+    list_display = ('voice_setting_set_name', 'commentary')
     inlines = [VoiceSettingInline]
 
 
@@ -145,14 +146,19 @@ admin.site.register(MSysMessageSet, MessagesetAdmin)
 
 
 # 編成セット
-class OrganizationInline(admin.TabularInline):
-    model = MOrganization
+class OrganizationParticipantNumberInline(admin.TabularInline):
+    model = MOrganizationParticipantNumber
+    extra = 5
+
+
+class OrganizationPositionNumberInline(admin.TabularInline):
+    model = MOrganizationPositionNumber
     extra = 5
 
 
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ('organization_set_name', 'participant_number')
-    inlines = [OrganizationInline]
+    list_display = ('organization_set_name', )
+    inlines = [OrganizationParticipantNumberInline, OrganizationPositionNumberInline]
 
 
 admin.site.register(MOrganizationSet, OrganizationAdmin)

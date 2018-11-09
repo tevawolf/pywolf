@@ -9,14 +9,14 @@ from ...common.common import get_login_info
 
 def index(request):
     """トップページ表示"""
-    pl_list = PLAccount.objects.order_by('id')
-    village_list = Village.objects.order_by('village_no')
+    pl_list = PLAccount.objects.filter(delete_flg=False).order_by('id')
+    village_list = Village.objects.filter(delete_flg=False).order_by('village_no')
 
     # ログイン情報取得
     login_info = get_login_info(request)
 
     # スタイルシート設定
-    stylesheet_set = MStyleSheetSet.objects.all()
+    stylesheet_set = MStyleSheetSet.objects.filter(delete_flg=False)
     stylesheet = get_stylesheet(request)
 
     context = {
