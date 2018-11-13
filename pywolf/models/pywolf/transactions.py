@@ -247,11 +247,27 @@ class VillageParticipantExeAbility(models.Model):
     day_no = models.SmallIntegerField(verbose_name='日数番号', default=0)  # 日数番号
     vote = models.CharField(verbose_name='投票先ID', max_length=255, blank=True)  # 投票先ID
     fortune = models.CharField(verbose_name='占い先ID', max_length=255, blank=True)  # 占い先ID
+    fortune_result = models.BooleanField(verbose_name='占い結果(True:人狼,False:人間)', default=False, null=False)
     guard = models.CharField(verbose_name='護衛先ID', max_length=255, blank=True)  # 護衛先ID
+    guard_result = models.BooleanField(verbose_name='護衛結果(True:成功,False:失敗)', default=False, null=False)
     assault = models.CharField(verbose_name='襲撃先ID', max_length=255, blank=True)  # 襲撃先ID
+    assault_result = models.BooleanField(verbose_name='襲撃結果(True:成功,False:失敗)', default=False, null=False)  # 成否がわかるのは手ごたえあり設定の場合のみ
 
     def __str__(self):
         return "{0} : {1}日目".format(self.village_participant, self.day_no)
 
 
+class VillageParticipantExeAbilitySpiritResult(models.Model):
+    class Meta:
+        verbose_name = "村参加者能力行使　霊能結果"
+        verbose_name_plural = "村参加者能力行使　霊能結果"
+        db_table = 'village_participant_exe_ability_spirit_result'
+        unique_together = ("village_participant", "day_no", "spirit")
 
+    village_participant = models.ForeignKey(VillageParticipant, verbose_name='村参加者', on_delete=models.PROTECT)  # 村参加者
+    day_no = models.SmallIntegerField(verbose_name='日数番号', default=0)  # 日数番号
+    spirit = models.CharField(verbose_name='霊能先ID', max_length=255, blank=True)
+    spirit_result = models.BooleanField(verbose_name='霊能結果(True:人狼,False:人間)', default=False, null=False)
+
+    def __str__(self):
+        return "{0} : {1}日目 : {2}".format(self.village_participant, self.day_no, self.spirit)
