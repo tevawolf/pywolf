@@ -16,7 +16,7 @@
         function selectCharacterChip() {
             var srcs = {};
             {% for c in chips %}
-                srcs['{{ c.id }}'] = '{{ c.image_file_path }}:{{ c.image_width }}:{{ c.image_height }}:{{ c.description }}:{{ c.character_name }}';
+                srcs['{{ c.id }}'] = '{% static c.get_path %}:{{ c.image_width }}:{{ c.image_height }}:{{ c.description }}:{{ c.character_name }}';
             {% endfor %}
 
             var id = $('#entry_character_chip').val();
@@ -46,18 +46,25 @@
     </script>
 </head>
 <body onload="inputCheck();">
+    <a href="{% url 'pywolf:update_test' village.village_no progress.day_no %}">更新テスト</a>
     <a href="{% url 'pywolf:index' %}">トップページに戻る</a>
     {% include 'pywolf/login_selectstyle.html' with V=village.village_no D=day_no %}
     {# 村名・日数リンク、ページ数リンクなど #}
     <h1>{{village.village_no}} {{village.village_name}}<span style="font-size:11px;">({{village.update_time}}に更新)</span></h1>
     <h2>
         {% for d in days %}
-            {% if d == 0 %}
-                {% if d != day_no %}<a href="{% url 'pywolf:village' village.village_no d %}">プロローグ&nbsp;</a>
+            {% if d.village_status == 0 %}
+                {% if d.day_no != day_no %}<a href="{% url 'pywolf:village' village.village_no day_no %}">プロローグ&nbsp;</a>
                 {% else %}プロローグ{% endif %}
+            {% elif d.village_status == 2 %}
+                {% if d.day_no != day_no %}<a href="{% url 'pywolf:village' village.village_no d.day_no %}">エピローグ&nbsp;</a>
+                {% else %}エピローグ{% endif %}
+            {% elif d.village_status == 3 %}
+                {% if d.day_no != day_no %}<a href="{% url 'pywolf:village' village.village_no d.day_no %}">終了&nbsp;</a>
+                {% else %}終了{% endif %}
             {% else %}
-                {% if d != day_no %}<a href="{% url 'pywolf:village' village.village_no d %}">{{d}}日目&nbsp;</a>
-                {% else %}{{d}}日目{% endif %}
+                {% if d.day_no != day_no %}<a href="{% url 'pywolf:village' village.village_no d.day_no %}">{{d.day_no}}日目&nbsp;</a>
+                {% else %}{{d.day_no}}日目{% endif %}
             {% endif %}
         {% endfor %}
     </h2>
@@ -143,7 +150,7 @@
             {% if progress.village_status != 3 and progress.village_status != 4 %}  {# 終了もしくは廃村でなければシステム欄表示 #}
                 <div class="tabs">  {# システム欄（発言、フィルタ、村情報、進行情報）をタブ化 #}
                     <input id="voice" type="radio" name="tab_item" checked>
-                    <label class="tab_item" for="voice">発言・投票・能力行使</label>
+                    <label class="tab_item" for="voice">発言・投票など</label>
                     <input id="check" type="radio" name="tab_item">
                     <label class="tab_item" for="check">イイね(チェック)</label>
                     <input id="filter" type="radio" name="tab_item">
@@ -162,23 +169,25 @@
                             </span>
                             <span style="width: 80%; height:200px;">
                                 {% if participant.status == 0 and participant.position.vote_enable_flg == True and progress.village_status == 1 %}  {# 進行中・投票可能役職（普通全部）・ログイン参加者が生存なら投票フォーム表示 #}
-                                <form action="{% url 'pywolf:vote' village.village_no day_no %}" method="post">
+                                <form action="{% url 'pywolf:vote' village.village_no progress.day_no %}" method="post">
                                     {% csrf_token %}
                                     <div>投票先：
                                         <select name="vote">
                                             <option value="">(選択してください)</option>
                                             {% for part in parts %}
                                                 {% if part.status == 0 %}
-                                                    <option value="{{part.pl.id_view}}">{{part.description}}&nbsp;{{part.character_name}}</option>
+                                                    <option value="{{part.pl.id_view}}"
+                                                        {% if part.pl.id == vote.pl.id %} selected {% endif %}
+                                                    >{{part.description}}&nbsp;{{part.character_name}}</option>
                                                 {% endif %}
                                             {% endfor %}
                                         </select>
                                         <input type="submit" value="投票セット">
                                     </div>
-                                    {% if vote %}<div>現在、{{vote.description}}&nbsp;{{ vote.character_name }}に投票セットされています。</div>{% endif %}
+                                    {% if vote %}<div style="color:#8888ff;">現在、{{vote.description}}&nbsp;{{ vote.character_name }}に投票セットされています。</div>{% endif %}
                                 </form>
                                 {% endif %}
-                                <form name="voice" action="{% url 'pywolf:confirm' village.village_no day_no %}" method="post">
+                                <form name="voice" action="{% url 'pywolf:confirm' village.village_no progress.day_no %}" method="post">
                                     {% csrf_token %}
                                     {% if progress.village_status == 0 %} {# プロローグ中の発言設定 #}
                                         {% for vt in voice_type %}
@@ -216,7 +225,7 @@
                                 </form>
                                 {# 進行中・占い可能役職・ログイン参加者が生存なら占いフォーム表示 #}
                                 {% if participant.status == 0 and participant.position.fortune_enable_flg == True and progress.village_status == 1 %}
-                                <form name="fortune_form" action="{% url 'pywolf:fortune' village.village_no day_no %}" method="post">
+                                <form name="fortune_form" action="{% url 'pywolf:fortune' village.village_no progress.day_no %}" method="post">
                                     {% csrf_token %}
                                     {% for day, object in fortune_result.items %}
                                         {% if day != day_no %}
@@ -241,7 +250,7 @@
                                 {% endif %}
                                 {# 進行中・襲撃可能役職・ログイン参加者が生存なら襲撃フォーム表示 #}
                                 {% if participant.status == 0 and participant.position.assault_enable_flg == True and progress.village_status == 1 %}
-                                <form name="assault_form" action="{% url 'pywolf:assault' village.village_no day_no %}" method="post">
+                                <form name="assault_form" action="{% url 'pywolf:assault' village.village_no progress.day_no %}" method="post">
                                     {% csrf_token %}
                                     {% for day, object in assault_result.items %}
                                         {% if day != day_no %}

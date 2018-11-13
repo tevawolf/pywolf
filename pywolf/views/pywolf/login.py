@@ -12,22 +12,27 @@ def login(request, village_no, day_no):
     id = request.POST['id']
     password = request.POST['password']
 
-    id = hashlib.sha256(id.encode('utf-8')).hexdigest()
-    password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-
-    try:
-        account = PLAccount.objects.get(id=id, password=password, delete_flg=False)
-    except:
-        account = None
-
-    if account is not None:
-        request.session['login_user'] = account.id_view
-        request.session['login_id'] = id
-        if request.session.get('login_message', False):
-            del request.session['login_message']
-        request.session['stylesheet'] = account.select_style_id
-    else:
+    if id == 'system' or id == 'dummy':
+        # システムユーザーおよびダミーユーザーでのログインは不可
         request.session['login_message'] = 'IDが存在しないか、passwordが間違っています。'
+    else:
+        # ログイン認証
+        id = hashlib.sha256(id.encode('utf-8')).hexdigest()
+        password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+        try:
+            account = PLAccount.objects.get(id=id, password=password, delete_flg=False)
+        except:
+            account = None
+
+        if account is not None:
+            request.session['login_user'] = account.id_view
+            request.session['login_id'] = id
+            if request.session.get('login_message', False):
+                del request.session['login_message']
+            request.session['stylesheet'] = account.select_style_id
+        else:
+            request.session['login_message'] = 'IDが存在しないか、passwordが間違っています。'
 
     if village_no == 0 and day_no == 0:
         # トップページに戻る  ★★もっといい方法はないものか・・・★★

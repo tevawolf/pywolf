@@ -15,14 +15,16 @@ from .views.pywolf.fortune import fortune
 from .views.pywolf.assault import assault
 from .views.pywolf.entry_cancel import entry_cancel
 from .views.pywolf.selectstyle import selectstyle
+from .views.pywolf.update_test import update_test
 
 app_name = 'pywolf'
 urlpatterns = [
+    path('update_test/village<int:village_no>/day<int:day_no>', update_test, name='update_test'),
     path('', index, name='index'),
     path('create_village/', create_village, name='create_village'),
     path('confirm_create_village/', confirm_create_village, name='confirm_create_village'),
     path('execute_create_village/', exe_create_village, name='exe_create_village'),
-    path('selectstyle/int:village_no><int:day_no>', selectstyle, name='selectstyle'),
+    path('selectstyle/village<int:village_no>/day<int:day_no>', selectstyle, name='selectstyle'),
     path('village<int:village_no>/day<int:day_no>/', village, name='village'),
     path('village<int:village_no>/day<int:day_no>/confirm/', confirm, name='confirm'),
     path('village<int:village_no>/day<int:day_no>/voice/', voice, name='voice'),

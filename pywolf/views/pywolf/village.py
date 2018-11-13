@@ -1,10 +1,9 @@
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 
 from ...models.pywolf.transactions import Village
-from ...models.pywolf.transactions import VillageOrganizationSetting
-from ...models.pywolf.transactions import VillageOrganization
-from ...models.pywolf.transactions import VillageParticipantExeAbility
+from ...models.pywolf.transactions import VillageProgress
 from ...models.pywolf.masters import MVoiceType
 from ...models.pywolf.masters import VOICE_TYPE_ID
 from ...models.pywolf.masters import MPositionVoiceSetting
@@ -14,31 +13,49 @@ from ...models.pywolf.masters import MStyleSheetSet
 from ...models.pywolf.masters import MOrganizationPositionNumber
 from ...common.common import get_stylesheet
 from ...common.common import get_login_info
+from ...common.update import update
+
+from datetime import datetime
+import pytz
 
 
 def village(request, village_no, day_no):
     """村メイン画面表示"""
 
+    # 更新するか判定
+    prg = VillageProgress.objects.filter(village_no=village_no).latest()
+    update_datetime = prg.next_update_datetime
+
+    now = datetime.now()
+    timezone = pytz.timezone('Asia/Tokyo')
+    now = timezone.localize(now)
+
+    if now > update_datetime:
+        if prg.village_status != 3 or prg.village_status != 4:  # 終了か廃村していなければ
+            # 更新実行して、そのままログ取得＆表示へ
+            update(village_no, day_no)
+
     # 各種情報取得
     # get_object_or_404ではエラーメッセージをカスタマイズできない？？
     village = get_object_or_404(Village, pk=village_no)  # 村情報
-    parts = village.villageparticipant_set.filter(village_no=village_no, system_user_flg=False, cancel_flg=False, delete_flg=False).order_by('id')  # 参加者（投票・能力行使先）
-    voices = village.villageparticipantvoice_set.filter(day_no=day_no, delete_flg=False).order_by('voice_order')  # 発言
     progress = village.villageprogress_set.latest()  # 村進行情報(現在の）
-    chips = MChip.objects.filter(chip_set_id=village.chip_set_id, delete_flg=False)  # 村チップセット情報
+    parts = village.villageparticipant_set.filter(pl__system_user_flg=False, pl__dummy_user_flg=False, cancel_flg=False, delete_flg=False).order_by('id')  # 参加者（投票・能力行使先）
+    voices = village.villageparticipantvoice_set.filter(day_no=day_no, delete_flg=False).order_by('voice_order')  # 発言
+    days = village.villageprogress_set.all()  # 村進行情報(すべて）
+    chips = MChip.objects.filter(chip_set_id=village.chip_set_id, dummy_flg=False, delete_flg=False)
 
     # プロローグの場合、村役職情報（希望役職選択に使う）
     positions = []
     if progress.village_status == 0:
-        orgset = VillageOrganizationSetting.objects.filter(village_no_id=village_no)
-        if orgset:
+        try:
+            orgset = village.villageorganizationsetting_set.get()
             # 村編成設定から設定役職を取得する
-            organizations = VillageOrganization.objects.filter(village_no_=orgset.id)
-        else:
+            organizations = orgset.villageorganization_set.get()
+        except ObjectDoesNotExist:
             # 編成マスタ情報から編成に含まれる役職を取得する
-            organizations = MOrganizationPositionNumber.objects.filter(organization_id=village.organization_setting_id)
+            organizations = MOrganizationPositionNumber.objects.filter(organization_id=village.organization_setting)
         for org in organizations:
-            positions.append(MPosition.objects.get(id=org.position_id_id))
+            positions.append(MPosition.objects.get(pk=org.position_id_id))
 
     # ログインユーザーの村参加情報取得
     login_info = get_login_info(request)
@@ -54,20 +71,20 @@ def village(request, village_no, day_no):
     if login_info['login_id']:
         # ログインプレイヤーの村参加情報を取得
         try:
-            participant = village.villageparticipant_set.get(village_no=village_no, pl=login_info['login_id'], cancel_flg=False, delete_flg=False)
+            login_participant = village.villageparticipant_set.get(pl=login_info['login_id'], cancel_flg=False, delete_flg=False)
 
-            # 役職別発言設定を取得
-            voice_settings = MPositionVoiceSetting.objects.filter(position=participant.position).order_by('voice_type_id')
+            # ログインプレイヤーの役職の発言設定を取得
+            voice_settings = MPositionVoiceSetting.objects.filter(position=login_participant.position).order_by('voice_type_id')
             for val in voice_settings:
                 val.voice_type_name = MVoiceType.objects.get(pk=val.voice_type_id).voice_type_name
             try:
-                # 投票
-                today_ability = VillageParticipantExeAbility.objects.get(village_participant=participant, day_no=day_no)
+                # 投票セット済みなら、投票した相手の情報を取得
+                today_ability = login_participant.villageparticipantexeability_set.get(day_no=day_no)
                 if today_ability.vote:
-                    vote = village.villageparticipant_set.get(village_no=village_no, pl=today_ability.vote, cancel_flg=False)
+                    vote = village.villageparticipant_set.get(pl=today_ability.vote, cancel_flg=False)
 
-                # 能力行使先を取得
-                all_ability = VillageParticipantExeAbility.objects.filter(village_participant=participant)
+                # すべての日の能力行使情報を取得
+                all_ability = login_participant.villageparticipantexeability_set.all()
                 for i, ability in enumerate(all_ability):
                     # 襲撃
                     if ability.assault:
@@ -92,9 +109,9 @@ def village(request, village_no, day_no):
             except:
                 pass
         except:
-            participant = False
+            login_participant = False
     else:
-        participant = False
+        login_participant = False
 
     # （この村の情報ではない）マスタ情報
     voice_type = MVoiceType.objects.filter(delete_flg=False)  # 発言種別情報
@@ -105,11 +122,11 @@ def village(request, village_no, day_no):
 
     return render(request, "pywolf/village.html",
                   {'village': village,                       # 村情報
-                   'day_no': day_no,                         # 日数
-                   'days': range(0, progress.day_no+1),       #　日にちリンク作成用リスト
+                   'day_no': day_no,                         # 日数（表示用）
+                   'days': days,                            # 進行情報(すべての日）
                    'voices': voices,                         # 発言
                    'login_info': login_info,                # ログイン情報
-                   'participant': participant,              # ログインユーザ参加者情報
+                   'participant': login_participant,         # ログインユーザ参加者情報
                    'voice_settings': voice_settings,        # 役職別発言設定
                    'voice_type': voice_type,                # 発言種別
                    'VOICE_TYPE_ID': VOICE_TYPE_ID,          # 発言種別IDディクショナリ

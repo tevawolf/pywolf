@@ -23,6 +23,10 @@
         {% endif %}
     {% endfor %}
 
+    {% if not login_info.login_user %}
+    <div>村の作成はログインをしてから行ってください。</div>
+    {% endif %}
+
     <form action="{% url 'pywolf:confirm_create_village' %}" method="post">
         {% csrf_token %}
         <div class="container-main">
@@ -77,7 +81,11 @@
             <!--<div><span class="left"><input type="text" name="max_str_length"/>文字</span><span><input type="text" name="max_voice_point"/>pt</span></div>-->
             <!--<div><span class="left"><input type="checkbox" name="prologue_limit_off_flg"/><label>発言を無制限にする</label></span></div>-->
         </div>
-        <button type="submit">村を作成する</button>
+        <button type="submit"
+    {% if not login_info.login_user %}
+                disabled
+    {% endif %}
+        >村を作成する</button>
     </form>
     <!-- カレンダー -->
     <script>

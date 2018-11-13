@@ -78,7 +78,12 @@ class VillageParticipantVoiceStatusAdmin(admin.ModelAdmin):
 
 admin.site.register(VillageParticipantVoiceStatus, VillageParticipantVoiceStatusAdmin)
 
-admin.site.register(VillageParticipantExeAbility)
+
+class VillageParticipantExeAbilityAdmin(admin.ModelAdmin):
+    list_filter = ['village_participant']
+
+
+admin.site.register(VillageParticipantExeAbility, VillageParticipantExeAbilityAdmin)
 
 
 class MPositionAdmin(admin.ModelAdmin):

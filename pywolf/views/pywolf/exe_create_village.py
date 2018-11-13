@@ -3,9 +3,14 @@ from ...forms.pywolf.create_village_form import VillageForm
 from ...models.pywolf.transactions import Village
 from ...models.pywolf.transactions import VillageVoiceSetting
 from ...models.pywolf.transactions import VillageProgress
+from ...models.pywolf.transactions import VillageParticipant
+from ...models.pywolf.transactions import VillageParticipantVoice
 from ...models.pywolf.transactions import PLAccount
 from ...models.pywolf.masters import MStyleSheetSet
 from ...models.pywolf.masters import MVoiceSetting
+from ...models.pywolf.masters import MVoiceType
+from ...models.pywolf.masters import MPosition
+from ...models.pywolf.masters import VOICE_TYPE_ID
 
 from ...common.common import get_stylesheet
 from ...common.common import get_login_info
@@ -30,6 +35,11 @@ def exe_create_village(request):
                                                 int(form.cleaned_data['update_time_minute']), 0).time()
         non_save_village.abolition_date = date.today() + timedelta(days=14)
         non_save_village.chip_set = form.cleaned_data['chip_set']
+        # デフォルトのダミー設定
+        # オプションで、ダミーキャラと発言を村建てが設定可能にする
+        for chip in non_save_village.chip_set.mchip_set.all():
+            if chip.dummy_flg:
+                non_save_village.dummy_character = chip
         non_save_village.system_message = form.cleaned_data['system_message']
         non_save_village.organization_setting = form.cleaned_data['organization_setting']
         non_save_village.save()
@@ -54,10 +64,82 @@ def exe_create_village(request):
         progress.village_no = new_village
         progress.day_no = 0
         progress.village_status = 0
+        progress.next_update_datetime = datetime(new_village.start_scheduled_date.year,
+                                                 new_village.start_scheduled_date.month,
+                                                 new_village.start_scheduled_date.day,
+                                                 new_village.update_time.hour,
+                                                 new_village.update_time.minute,
+                                                 new_village.update_time.second) + \
+                                        timedelta(hours=new_village.update_interval)
+        progress.update_processing_lock = False
         progress.save()
 
-        # 最初のシステム・ダミー発言作成
-        # チップセットマスタにダミー発言を持たせないと
+
+        # 最初のシステム発言作成
+
+        # システム参加者
+        sys_user = VillageParticipant()
+        sys_user.village_no = new_village
+        sys_user.character_name = 'システム'
+        sys_user.pl = PLAccount.objects.get(system_user_flg=True)
+        sys_user.chip = new_village.dummy_character
+        sys_user.wish_position = MPosition.objects.get(pk=1)
+        sys_user.save()
+
+        type_system = MVoiceType.objects.get(pk=VOICE_TYPE_ID['system'])
+
+        sys_voice = VillageParticipantVoice()
+        sys_voice.village_no = new_village
+        sys_voice.day_no = 0
+        sys_voice.village_participant = sys_user
+        sys_voice.voice_number = 0
+        sys_voice.use_point = 0
+        sys_voice.voice_datetime = datetime.now()
+        sys_voice.good_pl = ''
+        sys_voice.voice_type = type_system
+        sys_voice.voice = new_village.system_message.msysmessage_set.get(sequence_number=0).message
+        sys_voice.system_voice_flg = True
+        sys_voice.voice_order = 0
+        sys_voice.save()
+        # 「1人目、○○○○○」
+        sys_voice1 = VillageParticipantVoice()
+        sys_voice1.village_no = new_village
+        sys_voice1.day_no = 0
+        sys_voice1.village_participant = sys_user
+        sys_voice1.voice_number = 1
+        sys_voice1.use_point = 0
+        sys_voice1.voice_datetime = datetime.now()
+        sys_voice1.good_pl = ''
+        sys_voice1.voice_type = type_system
+        sys_voice1.voice = '1人目、{}'.format(new_village.dummy_character.character_name)
+        sys_voice1.system_voice_flg = True
+        sys_voice1.voice_order = 1
+        sys_voice1.save()
+
+        # 最初のダミー発言作成
+
+        # ダミー参加者
+        dummy_user = VillageParticipant()
+        dummy_user.village_no = new_village
+        dummy_user.character_name = new_village.dummy_character.character_name
+        dummy_user.pl = PLAccount.objects.get(dummy_user_flg=True)
+        dummy_user.chip = new_village.dummy_character
+        dummy_user.wish_position = MPosition.objects.get(pk=1)
+        dummy_user.save()
+
+        dummy_voice = VillageParticipantVoice()
+        dummy_voice.village_no = new_village
+        dummy_voice.day_no = 0
+        dummy_voice.village_participant = dummy_user
+        dummy_voice.voice_number = 0
+        dummy_voice.use_point = 0
+        dummy_voice.voice_datetime = datetime.now()
+        dummy_voice.good_pl = ''
+        dummy_voice.voice_type = MVoiceType.objects.get(pk=VOICE_TYPE_ID['normal'])
+        dummy_voice.voice = new_village.dummy_character.dummy_voice_pro
+        dummy_voice.system_voice_flg = True
+        dummy_voice.voice_order = 2
+        dummy_voice.save()
 
         context = {
             'village': new_village,

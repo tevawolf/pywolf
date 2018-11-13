@@ -20,7 +20,8 @@ class PLAccount(models.Model):
     password = models.CharField(verbose_name='パスワード', max_length=255)  # パスワード
     select_style = models.ForeignKey(MStyleSheetSet, verbose_name='選択スタイルシート', on_delete=models.SET_NULL, null=True)
     commentary = models.TextField(verbose_name='説明', blank=True)  # 説明
-    system_user_flg = models.BooleanField(verbose_name='システム用ユーザーフラグ', default=False)  # システム用ユーザーフラグ
+    system_user_flg = models.BooleanField(verbose_name='システム用ユーザーフラグ', default=False)
+    dummy_user_flg = models.BooleanField(verbose_name='ダミー用ユーザーフラグ', default=False)
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
     def __str__(self):
@@ -78,6 +79,7 @@ class Village(models.Model):
     chip_set = models.ForeignKey(MChipSet, verbose_name='チップセット', on_delete=models.PROTECT)  # チップセット
     system_message = models.ForeignKey(MSysMessageSet, verbose_name='システム文章', on_delete=models.PROTECT)
     organization_setting = models.ForeignKey(MOrganizationSet, verbose_name='編成セット(村作成時の設定)', on_delete=models.PROTECT)
+    dummy_character = models.ForeignKey(MChip, verbose_name='ダミーキャラクター', on_delete=models.PROTECT)
     # 役職希望可否フラグ
     # 自殺票可否フラグ
     # 突然死有無フラグ
@@ -169,7 +171,6 @@ class VillageParticipant(models.Model):
     win_lose_class = models.SmallIntegerField(verbose_name='勝敗区分', choices=WIN_LOSE_CLASS, default=0)  # 勝敗区分
     memo = models.TextField(verbose_name='メモ', blank=True)  # メモ
     village_denominated_flg = models.BooleanField(verbose_name='村建てフラグ', default=False)  # 村建てフラグ
-    system_user_flg = models.BooleanField(verbose_name='システム用ユーザーフラグ', default=False)  # システム用ユーザーフラグ
     cancel_flg = models.BooleanField(verbose_name='退村フラグ', default=False)
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
@@ -195,6 +196,8 @@ class VillageProgress(models.Model):
         (4, "廃村"),
     )
     village_status = models.SmallIntegerField(verbose_name='村状態', choices=VILLAGE_STATUS, default=0)  # 村状態
+    next_update_datetime = models.DateTimeField(verbose_name='次回更新日時', null=True)
+    update_processing_lock = models.BooleanField(verbose_name='更新処理中ロック', default=False)
 
     def __str__(self):
         return "{0}:{1}日目".format(self.village_no, self.day_no)

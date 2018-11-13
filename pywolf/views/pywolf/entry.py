@@ -49,7 +49,6 @@ def entry(request, village_no):
     if participant.pl == village.village_master_account:
         participant.village_denominated_flg = True
 
-    participant.system_user_flg = False
     participant.save()
 
     # 第１発言登録

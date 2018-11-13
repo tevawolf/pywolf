@@ -170,6 +170,9 @@ class MChip(models.Model):
     image_height = models.SmallIntegerField(verbose_name='画像高さ', default=130)  # 画像高さ
     description = models.CharField(verbose_name='肩書', max_length=30)  # 肩書
     character_name = models.CharField(verbose_name='キャラクタ名', max_length=30)  # キャラクタ名
+    dummy_flg = models.BooleanField(verbose_name='ダミーキャラクタフラグ', default=False)
+    dummy_voice_pro = models.TextField(verbose_name='ダミー発言：プロローグ', null=True)
+    dummy_voice_first = models.TextField(verbose_name='ダミー発言：１日目', null=True)
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
     def __str__(self):

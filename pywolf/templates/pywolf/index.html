@@ -18,6 +18,8 @@
 {% else %}
     <p>No id are available.</p>
 {% endif %}
+    <div>ユーザー登録</div>
+    <a href="{% url 'pywolf:create_village' %}">ユーザー登録する</a>
     <div>村の作成</div>
     <a href="{% url 'pywolf:create_village' %}">村を作成する</a>
 {% if village_list %}
