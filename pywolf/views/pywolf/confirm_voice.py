@@ -3,7 +3,7 @@ from django.shortcuts import render
 from ...models.pywolf.masters import VOICE_TYPE_ID
 
 
-def confirm(request, village_no, day_no):
+def confirm_voice(request, village_no, day_no):
     """発言内容の確認画面に遷移"""
 
     v = request.POST['voice']
@@ -13,7 +13,7 @@ def confirm(request, village_no, day_no):
     chip_pass = request.POST['chip_pass']
 
     # 発言内容、発言種類、発言種類区分のディクショナリを渡す
-    return render(request, "pywolf/confirm.html",
+    return render(request, "pywolf/confirm_voice.html",
                   {'village_no': village_no,
                    'day_no': day_no,
                    'voice': v,

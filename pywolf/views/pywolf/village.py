@@ -14,6 +14,7 @@ from ...models.pywolf.masters import MOrganizationPositionNumber
 from ...common.common import get_stylesheet
 from ...common.common import get_login_info
 from ...common.update import update
+from ...forms.pywolf.entry_form import EntryForm
 
 from datetime import datetime
 import pytz
@@ -31,7 +32,7 @@ def village(request, village_no, day_no):
     now = timezone.localize(now)
 
     if now > update_datetime:
-        if prg.village_status != 3 or prg.village_status != 4:  # 終了か廃村していなければ
+        if prg.village_status != 3 and prg.village_status != 4:  # 終了か廃村していなければ
             # 更新実行して、そのままログ取得＆表示へ
             update(village_no, day_no)
 
@@ -45,17 +46,17 @@ def village(request, village_no, day_no):
     chips = MChip.objects.filter(chip_set_id=village.chip_set_id, dummy_flg=False, delete_flg=False)
 
     # プロローグの場合、村役職情報（希望役職選択に使う）
-    positions = []
-    if progress.village_status == 0:
-        try:
-            orgset = village.villageorganizationsetting_set.get()
-            # 村編成設定から設定役職を取得する
-            organizations = orgset.villageorganization_set.get()
-        except ObjectDoesNotExist:
-            # 編成マスタ情報から編成に含まれる役職を取得する
-            organizations = MOrganizationPositionNumber.objects.filter(organization_id=village.organization_setting)
-        for org in organizations:
-            positions.append(MPosition.objects.get(pk=org.position_id_id))
+    # positions = []
+    # if progress.village_status == 0:
+    #     try:
+    #         orgset = village.villageorganizationsetting_set.get()
+    #         # 村編成設定から設定役職を取得する
+    #         organizations = orgset.villageorganization_set.get()
+    #     except ObjectDoesNotExist:
+    #         # 編成マスタ情報から編成に含まれる役職を取得する
+    #         organizations = MOrganizationPositionNumber.objects.filter(organization_id=village.organization_setting)
+    #     for org in organizations:
+    #         positions.append(MPosition.objects.get(pk=org.position_id_id))
 
     # ログインユーザーの村参加情報取得
     login_info = get_login_info(request)
@@ -120,10 +121,24 @@ def village(request, village_no, day_no):
     stylesheet_set = MStyleSheetSet.objects.filter(delete_flg=False)
     stylesheet = get_stylesheet(request)
 
+    # 入村パスワードエラーメッセージ
+    if request.session.get('entry_message', False):
+        into_password_error_message = request.session['entry_message']
+        del request.session['entry_message']
+    else:
+        into_password_error_message = ''
+
+    # プロローグで、ログインしておりかつ参加していなければ、入村フォーム
+    e_form = False
+    if progress.village_status == 0 and login_info['login_id'] and not login_participant:
+        # e_form = EntryForm(village_no)
+        e_form = EntryForm(village_no)
+
     return render(request, "pywolf/village.html",
                   {'village': village,                       # 村情報
                    'day_no': day_no,                         # 日数（表示用）
                    'days': days,                            # 進行情報(すべての日）
+                   'progress': progress,                    # 村進行情報(現在）
                    'voices': voices,                         # 発言
                    'login_info': login_info,                # ログイン情報
                    'participant': login_participant,         # ログインユーザ参加者情報
@@ -137,10 +152,11 @@ def village(request, village_no, day_no):
                    'fortune_result': fortune,               # 占い結果情報
                    'fortune_set': fortune_set,              # 占いセット情報
                    'guard': guard,                           # 護衛セット情報
-                   'progress': progress,                    # 村進行情報
                    'chips': chips,                          # チップセット
-                   'positions': positions,                  # 村役職リスト
+                   # 'positions': positions,                  # 村役職リスト
                    'stylesheet_set': stylesheet_set,       # スタイルシートセット
                    'stylesheet': stylesheet,                # スタイルシート
+                   'into_password_error_message': into_password_error_message,  # 入村パスワードエラーメッセージ
+                   'e_form': e_form,                          # 入村フォーム
                    }
                   )

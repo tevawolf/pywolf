@@ -10,7 +10,7 @@
                 <div style="display: table-cell; vertical-align:top;">
                     <dir style="font-size:11px;">
                         <a href="">{{ voice.voice_type.voice_type_symbol }}{{ voice.voice_number }}</a>:
-                        {{ voice.village_participant.character_name }}
+                        {{ voice.village_participant.description }}&nbsp;{{ voice.village_participant.character_name }}
                         {% if voice.voice_type_id == VOICE_TYPE_ID.self %}
                             <span>&nbsp;【{{ voice.voice_type.voice_type_name }}】</span>
                         {% endif %}

@@ -47,3 +47,8 @@ textarea.voice {
 textarea.voice:focus, textarea.voice:hover {
     border: solid 1.5px #0000dd !important;  /* 枠線が浮き出る */
 }
+
+span[class="error_message"] {
+    color:          #FF6666;
+    font-weight:    bold;
+}

@@ -53,11 +53,18 @@ class VillageOrganizationSetAdmin(admin.ModelAdmin):
 
 
 admin.site.register(VillageOrganizationSetting, VillageOrganizationSetAdmin)
-admin.site.register(VillageProgress)
+
+
+class VillageProgressAdmin(admin.ModelAdmin):
+    list_filter = ['village_no']
+
+
+admin.site.register(VillageProgress, VillageProgressAdmin)
 
 
 class VillageParticipantAdmin(admin.ModelAdmin):
     list_display = ('pl', 'village_no', 'sequence', 'chip', 'description', 'character_name')
+    list_filter = ['village_no']
 
 
 admin.site.register(VillageParticipant, VillageParticipantAdmin)
@@ -65,7 +72,7 @@ admin.site.register(VillageParticipant, VillageParticipantAdmin)
 
 class VillageParticipantVoiceAdmin(admin.ModelAdmin):
     list_display = ('village_participant', 'day_no', 'voice_type', 'voice_number')
-    list_filter = ['village_participant',  'day_no', 'voice_type']
+    list_filter = ['village_participant']
     search_fields = ['voice']
 
 

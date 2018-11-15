@@ -1,9 +1,9 @@
 from django.shortcuts import render
 
-from ...common.common import get_stylesheet
-from ...models.pywolf.transactions import Village
+from pywolf.common.common import get_stylesheet
+from pywolf.models.pywolf.transactions import Village
 
-from ...forms.pywolf.create_village_form import VillageForm
+from pywolf.forms.pywolf.create_village_form import VillageForm
 
 import hashlib
 
@@ -40,9 +40,9 @@ def confirm_create_village(request):
     }
 
     if not is_valid:
-        return render(request, 'pywolf/create_village.html', context)
+        return render(request, 'pywolf/create_village/create_village.html', context)
     else:
-        return render(request, 'pywolf/confirm_create_village.html', context)
+        return render(request, 'pywolf/create_village/confirm_create_village.html', context)
 
 
 def get_choice_str(choice, data):

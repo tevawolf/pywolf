@@ -20,12 +20,20 @@
             {% endfor %}
 
             var id = $('#entry_character_chip').val();
-            var select = srcs[id].split(':');
-            $('#entry_character_image').children('img').attr('src', select[0]);
-            $('#entry_character_image').children('img')
-                .attr('style', 'width:' + select[1] + 'px; height:' + select[2] + 'px');
-            $('#entry_description').val(select[3]);
-            $('#entry_name').val(select[4]);
+            if (id == '') {
+                $('#entry_character_image').children('img').attr('src', '{% static 'pywolf/chips/noselect.png' %}');
+                $('#entry_character_image').children('img')
+                    .attr('style', 'width:90px; height:130px');
+                $('#entry_description').val('');
+                $('#entry_name').val('');
+            } else {
+                var select = srcs[id].split(':');
+                $('#entry_character_image').children('img').attr('src', select[0]);
+                $('#entry_character_image').children('img')
+                    .attr('style', 'width:' + select[1] + 'px; height:' + select[2] + 'px');
+                $('#entry_description').val(select[3]);
+                $('#entry_character_name').val(select[4]);
+            }
         }
         // 発言窓の表示変更処理
         function selectVoiceType(type) {
@@ -49,6 +57,7 @@
     <a href="{% url 'pywolf:update_test' village.village_no progress.day_no %}">更新テスト</a>
     <a href="{% url 'pywolf:index' %}">トップページに戻る</a>
     {% include 'pywolf/login_selectstyle.html' with V=village.village_no D=day_no %}
+    {% if into_password_error_message %}<span class="error_message">{{ into_password_error_message }}</span>{% endif %}
     {# 村名・日数リンク、ページ数リンクなど #}
     <h1>{{village.village_no}} {{village.village_name}}<span style="font-size:11px;">({{village.update_time}}に更新)</span></h1>
     <h2>
@@ -71,11 +80,19 @@
 
     {# 発言ログ 表示・非表示の制御 #}
     {% for voice in voices %}
-        {% if progress.village_status == 2 or progress.village_status == 3 %}
+        {% if progress.village_status == 0 %}
+            {# プロローグは通常発言・自分の独り言・システム発言のみ #}
+            {% if voice.voice_type.id == VOICE_TYPE_ID.normal or voice.voice_type.id == VOICE_TYPE_ID.system %}  {# 発言種別を自分の発言設定と照合 #}
+                {% include 'pywolf/voice_window.html' %}
+            {% endif %}
+            {% if voice.village_participant.pl.id_view == login_info.login_user and voice.village_participant.cancel_flg == False and voice.voice_type.id == VOICE_TYPE_ID.self %}
+                {% include 'pywolf/voice_window.html' %}
+            {% endif %}
+        {% elif progress.village_status == 2 or progress.village_status == 3 %}
             {# エピ・終了後はフルオープン #}
             {% include 'pywolf/voice_window.html' %}
         {% else %}
-            {# プロ・進行中 #}
+            {# 進行中 #}
             {% if login_info.login_user %}
                 {% if participant %}
                 {# ログインかつ入村後は、他参加者の発言の種別を見て、表示・非表示を判定 #}
@@ -119,33 +136,30 @@
 
     {% if login_info.login_user %}  {# ログインしていれば、発言など入力欄 #}
         {% if progress.village_status == 0 and participant == False %}  {# プロローグで入村前の場合、入村フォーム #}
+            {% if participant.count >=  village.max_number %}
+                <span>この村の参加人数は定員に達しています。</span>
+            {% else %}
             <form action="{% url 'pywolf:entry' village.village_no %}" method="post">
                 {% csrf_token %}
                 <dir>入村フォーム</dir>
-                <div>キャラクター：
+                <div>{{e_form.chips.label}}：
                     <span id="entry_character_image">
                         <img src="{% static 'pywolf/chips/noselect.png' %}" />
                     </span>
-                    <select name="chip" id="entry_character_chip" onchange="selectCharacterChip();">
-                        <option value="">(選択してください)</option>
-                        {% for c in chips %}
-                        <option value="{{c.id}}">{{c.description}}&nbsp;{{c.character_name}}</option>
-                        {% endfor %}
-                    </select>
+                    {{e_form.chips}}
                 </div>
-                <dir><span>肩書</span><input type="text" id="entry_description" name="description" /></dir>
-                <dir><span>名前</span><input type="text" id="entry_name" name="name" /></dir>
-                <div>希望役職：
-                    <select name="wish_position">
-                        <option value="">(選択してください)</option>
-                        {% for pos in positions %}
-                        <option value="{{pos.id}}">{{pos.position_name}}</option>
-                        {% endfor %}
-                    </select>
+                <dir><span>{{e_form.description.label}}</span>{{e_form.description}}</dir>
+                <dir><span>{{e_form.character_name.label}}</span>{{e_form.character_name}}</dir>
+                <div>{{e_form.wish_position.label}}：
+                    {{e_form.wish_position}}
                 </div>
-                <dir><span>発言</span><textarea class="voice" style="width:350px; height:150px; background: linear-gradient(135deg, #FFFFFF 60%, #DDDDDD 100%); border: solid 1.5px #222222;" name="voice"></textarea></dir>
+                <dir><span>{{e_form.voice.label}}</span>{{e_form.voice}}<!--<textarea class="voice" style="width:350px; height:150px; background: linear-gradient(135deg, #FFFFFF 60%, #DDDDDD 100%); border: solid 1.5px #222222;" name="voice"></textarea>--></dir>
+                {% if village.into_password %}
+                    <dir><span>{{e_form.into_password.label}}</span>{{e_form.into_password}}</dir>
+                {% endif %}
                 <dir><input type="submit" value="入村します"></dir>
             </form>
+            {% endif %}
         {% elif participant != False %}  {# 入村していれば発言窓を表示 #}
             {% if progress.village_status != 3 and progress.village_status != 4 %}  {# 終了もしくは廃村でなければシステム欄表示 #}
                 <div class="tabs">  {# システム欄（発言、フィルタ、村情報、進行情報）をタブ化 #}
@@ -187,7 +201,7 @@
                                     {% if vote %}<div style="color:#8888ff;">現在、{{vote.description}}&nbsp;{{ vote.character_name }}に投票セットされています。</div>{% endif %}
                                 </form>
                                 {% endif %}
-                                <form name="voice" action="{% url 'pywolf:confirm' village.village_no progress.day_no %}" method="post">
+                                <form name="voice" action="{% url 'pywolf:confirm_voice' village.village_no progress.day_no %}" method="post">
                                     {% csrf_token %}
                                     {% if progress.village_status == 0 %} {# プロローグ中の発言設定 #}
                                         {% for vt in voice_type %}
@@ -298,6 +312,9 @@
                     </div>
                 </div>
             {% endif %}
+
+            {# 村建てメニュー #}
+
             {% if progress.village_status == 0 and participant != False %}  {# 入村済みでプロローグの場合 #}
                 <form action="{% url 'pywolf:entry_cancel' village.village_no %}" method="post">
                     {% csrf_token %}

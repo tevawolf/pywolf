@@ -19,14 +19,14 @@
     <p>No id are available.</p>
 {% endif %}
     <div>ユーザー登録</div>
-    <a href="{% url 'pywolf:create_village' %}">ユーザー登録する</a>
+    <a href="{% url 'pywolf:create_user' %}">ユーザー登録する</a>
     <div>村の作成</div>
     <a href="{% url 'pywolf:create_village' %}">村を作成する</a>
 {% if village_list %}
     <div>現在進行中の村</div>
     <ul>
     {% for village in village_list %}
-        <li><a href="{% url 'pywolf:village' village.village_no 0 %}">{{ village.village_name }}</a></li>
+        <li><a href="{% url 'pywolf:village' village.village_no village.villageprogress_set.latest.day_no %}">{{ village.village_name }}</a></li>
     {% endfor %}
     </ul>
 {% else %}

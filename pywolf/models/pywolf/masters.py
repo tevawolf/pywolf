@@ -171,12 +171,12 @@ class MChip(models.Model):
     description = models.CharField(verbose_name='肩書', max_length=30)  # 肩書
     character_name = models.CharField(verbose_name='キャラクタ名', max_length=30)  # キャラクタ名
     dummy_flg = models.BooleanField(verbose_name='ダミーキャラクタフラグ', default=False)
-    dummy_voice_pro = models.TextField(verbose_name='ダミー発言：プロローグ', null=True)
-    dummy_voice_first = models.TextField(verbose_name='ダミー発言：１日目', null=True)
+    dummy_voice_pro = models.TextField(verbose_name='ダミー発言：プロローグ', null=True, blank=True)
+    dummy_voice_first = models.TextField(verbose_name='ダミー発言：１日目', null=True, blank=True)
     delete_flg = models.BooleanField(verbose_name='削除フラグ', default=False)  # 削除フラグ
 
     def __str__(self):
-        return self.character_name
+        return '{} {}'.format(self.description, self.character_name)
 
     def get_path(self):
         return str(self.image_file_path).replace(STATICFILES_DIRS, '')

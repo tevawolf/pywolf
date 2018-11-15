@@ -1,19 +1,21 @@
 from django.shortcuts import render
-from ...forms.pywolf.create_village_form import VillageForm
-from ...models.pywolf.transactions import Village
-from ...models.pywolf.transactions import VillageVoiceSetting
-from ...models.pywolf.transactions import VillageProgress
-from ...models.pywolf.transactions import VillageParticipant
-from ...models.pywolf.transactions import VillageParticipantVoice
-from ...models.pywolf.transactions import PLAccount
-from ...models.pywolf.masters import MStyleSheetSet
-from ...models.pywolf.masters import MVoiceSetting
-from ...models.pywolf.masters import MVoiceType
-from ...models.pywolf.masters import MPosition
-from ...models.pywolf.masters import VOICE_TYPE_ID
+from django.db.models import Q
 
-from ...common.common import get_stylesheet
-from ...common.common import get_login_info
+from pywolf.forms.pywolf.create_village_form import VillageForm
+from pywolf.models.pywolf.transactions import Village
+from pywolf.models.pywolf.transactions import VillageVoiceSetting
+from pywolf.models.pywolf.transactions import VillageProgress
+from pywolf.models.pywolf.transactions import VillageParticipant
+from pywolf.models.pywolf.transactions import VillageParticipantVoice
+from pywolf.models.pywolf.transactions import PLAccount
+from pywolf.models.pywolf.masters import MStyleSheetSet
+from pywolf.models.pywolf.masters import MVoiceSetting
+from pywolf.models.pywolf.masters import MVoiceType
+from pywolf.models.pywolf.masters import MPosition
+from pywolf.models.pywolf.masters import VOICE_TYPE_ID
+
+from pywolf.common.common import get_stylesheet
+from pywolf.common.common import get_login_info
 
 from datetime import date
 from datetime import datetime
@@ -25,6 +27,16 @@ def exe_create_village(request):
 
     # スタイルシート設定
     stylesheet = get_stylesheet(request)
+
+    # 上限オーバーチェック
+    if VillageProgress.objects.latest().exclide(Q(village_status=3) | Q(village_status=4)) > 4:
+        context = {
+            'village': '',
+            'error_message': '村の作成数の上限を超えたため、村の作成ができませんでした。<br/>申し訳ありませんが、ほかの村が終了するのをお待ちください。',
+            'stylesheet': stylesheet,
+        }
+        return render(request, 'pywolf/create_village/complete_create_village.html', context)
+
 
     form = VillageForm(request.POST)
     if form.is_valid():
@@ -74,7 +86,6 @@ def exe_create_village(request):
         progress.update_processing_lock = False
         progress.save()
 
-
         # 最初のシステム発言作成
 
         # システム参加者
@@ -111,7 +122,7 @@ def exe_create_village(request):
         sys_voice1.voice_datetime = datetime.now()
         sys_voice1.good_pl = ''
         sys_voice1.voice_type = type_system
-        sys_voice1.voice = '1人目、{}'.format(new_village.dummy_character.character_name)
+        sys_voice1.voice = '1人目、{} {}'.format(new_village.dummy_character.description, new_village.dummy_character.character_name)
         sys_voice1.system_voice_flg = True
         sys_voice1.voice_order = 1
         sys_voice1.save()
@@ -121,6 +132,7 @@ def exe_create_village(request):
         # ダミー参加者
         dummy_user = VillageParticipant()
         dummy_user.village_no = new_village
+        dummy_user.description = new_village.dummy_character.description
         dummy_user.character_name = new_village.dummy_character.character_name
         dummy_user.pl = PLAccount.objects.get(dummy_user_flg=True)
         dummy_user.chip = new_village.dummy_character
@@ -145,7 +157,7 @@ def exe_create_village(request):
             'village': new_village,
             'stylesheet': stylesheet,
         }
-        return render(request, 'pywolf/complete_create_village.html', context)
+        return render(request, 'pywolf/create_village/complete_create_village.html', context)
 
     else:
         # ログイン情報取得
@@ -158,4 +170,4 @@ def exe_create_village(request):
             'stylesheet': stylesheet,
             'form': form,
         }
-        return render(request, 'pywolf/create_village.html', context)
+        return render(request, 'pywolf/create_village/create_village.html', context)

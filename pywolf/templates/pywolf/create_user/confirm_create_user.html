@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>蛇狼独立領　ユーザー作成　内容確認</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.4.get_path %}" />
+</head>
+<body>
+<div>
+    <div>この内容でよろしいですか？</div>
+    <div class="container-main">
+        <div><span class="left">{{form.id_view.label}}：</span><span>{{form.cleaned_data.id_view}}</span></div>
+        <div><span class="left">{{form.password.label}}：</span><span>●●●●●●●</span></div>
+        <div><span class="left">{{form.commentary.label}}：</span><span>{{form.cleaned_data.commentary}}</span></div>
+    </div>
+    <form action="{% url 'pywolf:exe_create_user' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id_view" value="{{form.cleaned_data.id_view}}"/>
+        <input type="hidden" name="password" value="{{hidden_password}}"/>
+        <input type="hidden" name="commentary" value="{{form.cleaned_data.commentary}}"/>
+        <button type="submit">決定</button><button type="button" onclick="history.back();">やりなおし</button>
+    </form>
+</div>
+</body>
+</html>

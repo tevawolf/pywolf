@@ -1,8 +1,8 @@
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from ...models.pywolf.transactions import VillageParticipant
-from ...models.pywolf.transactions import VillageParticipantExeAbility
+from pywolf.models.pywolf.transactions import VillageParticipant
+from pywolf.models.pywolf.transactions import VillageParticipantExeAbility
 
 import hashlib
 

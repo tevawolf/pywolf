@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from ...models.pywolf.transactions import PLAccount
+from pywolf.models.pywolf.transactions import PLAccount
 
 import hashlib
 
@@ -14,7 +14,7 @@ def login(request, village_no, day_no):
 
     if id == 'system' or id == 'dummy':
         # システムユーザーおよびダミーユーザーでのログインは不可
-        request.session['login_message'] = 'IDが存在しないか、passwordが間違っています。'
+        request.session['login_message'] = 'IDが存在しないか、パスワードが間違っています。'
     else:
         # ログイン認証
         id = hashlib.sha256(id.encode('utf-8')).hexdigest()
@@ -32,7 +32,7 @@ def login(request, village_no, day_no):
                 del request.session['login_message']
             request.session['stylesheet'] = account.select_style_id
         else:
-            request.session['login_message'] = 'IDが存在しないか、passwordが間違っています。'
+            request.session['login_message'] = 'IDが存在しないか、パスワードが間違っています。'
 
     if village_no == 0 and day_no == 0:
         # トップページに戻る  ★★もっといい方法はないものか・・・★★

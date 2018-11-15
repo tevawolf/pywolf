@@ -230,4 +230,9 @@ def create_village_info(village_no, day_no, village_status):
             voice_status.save()
 
     # 更新結果のシステムメッセージ作成
-    # １日目のダミー発言作成
+    if voice_status.day_no == 1:
+        # １日目のシステム発言・ダミー発言作成
+        pass
+
+    # 決着がついた場合、リザルト表示
+

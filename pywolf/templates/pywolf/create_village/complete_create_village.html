@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>蛇狼独立領　{% if village %}村建て完了{% else %}エラー{% endif %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static stylesheet.0.get_path %}" />
+    <link rel="stylesheet" href="{% static stylesheet.4.get_path %}" />
+</head>
+<body>
+<div>
+    <h2>{% if village %}村建て完了{% else %}エラー{% endif %}</h2>
+    {% if village %}
+        <div><span>{{village.village_no}}:{{village.village_name}}の作成が完了しました</span></div>
+    {% else %}
+        <div><span class="error_message">{{error_message}}</span></div>
+    {% endif %}
+    <a href="{% url 'pywolf:index' %}">トップページに戻る</a>
+</div>
+</body>
+</html>

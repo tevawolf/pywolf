@@ -1,12 +1,14 @@
 from django.shortcuts import render
 
-from ...common.common import get_login_info
-from ...models.pywolf.masters import MStyleSheetSet
-from ...common.common import get_stylesheet
-from ...models.pywolf.masters import MPosition
+from pywolf.common.common import get_login_info
+from pywolf.models.pywolf.masters import MStyleSheetSet
+from pywolf.common.common import get_stylesheet
+from pywolf.models.pywolf.masters import MPosition
 
-from ...forms.pywolf.create_village_form import VillageForm
+from pywolf.forms.pywolf.create_village_form import VillageForm
+from pywolf.forms.pywolf.entry_form import EntryForm
 
+from pywolf.models.pywolf.transactions import Village
 
 def create_village(request):
     """村の作成ページ表示"""
@@ -31,4 +33,4 @@ def create_village(request):
         'form': form,
     }
 
-    return render(request, 'pywolf/create_village.html', context)
+    return render(request, 'pywolf/create_village/create_village.html', context)
