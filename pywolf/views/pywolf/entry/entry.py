@@ -7,7 +7,6 @@ from django.urls import reverse
 from pywolf.models.pywolf.masters import MChip
 from pywolf.models.pywolf.masters import MPosition
 from pywolf.models.pywolf.masters import MVoiceType
-from pywolf.models.pywolf.masters import VOICE_TYPE_ID
 
 from pywolf.models.pywolf.transactions import Village
 from pywolf.models.pywolf.transactions import VillageParticipant
@@ -16,6 +15,10 @@ from pywolf.models.pywolf.transactions import VillageParticipantVoiceStatus
 from pywolf.models.pywolf.transactions import VillageVoiceSetting
 from pywolf.models.pywolf.transactions import VillageParticipantExeAbility
 from pywolf.models.pywolf.transactions import PLAccount
+
+from pywolf.enums import VoiceTypeId
+
+from ....common.common import save_voice
 
 import hashlib
 
@@ -66,54 +69,18 @@ def entry(request, village_no):
 
     # 「X人目、○○○○○」
     sys_user = village.villageparticipant_set.get(pl=PLAccount.objects.get(system_user_flg=True))
-    type_system = MVoiceType.objects.get(pk=VOICE_TYPE_ID['system'])
+    type_system = MVoiceType.objects.get(pk=VoiceTypeId.SYSTEM.value)
 
-    sys_voice = VillageParticipantVoice()
-    sys_voice.village_no = village
-    sys_voice.day_no = 0
-    sys_voice.village_participant = sys_user
-    if(village.villageparticipantvoice_set.exists()):
-        lastvoice = village.villageparticipantvoice_set.filter(voice_type_id=VOICE_TYPE_ID['system']).order_by('-voice_number')
-        if lastvoice:
-            sys_voice.voice_number = lastvoice[0].voice_number + 1
-
-        lastvoice_order = \
-            village.villageparticipantvoice_set.order_by('-voice_order')[0]
-        sys_voice.voice_order = lastvoice_order.voice_order + 1
-    else:
-        sys_voice.voice_number = 0
-        sys_voice.voice_order = 0
-
-    sys_voice.use_point = 0
-    sys_voice.voice_datetime = datetime.now()
-    sys_voice.good_pl = ''
-    sys_voice.voice_type = type_system
-    sys_voice.voice = '{}人目、{} {}'.format(
-        village.villageparticipant_set.filter(
-            pl__system_user_flg=False, pl__dummy_user_flg=False, cancel_flg=False, delete_flg=False
-        ).count() + 1, participant.description, participant.character_name)
-    sys_voice.system_voice_flg = True
-    sys_voice.save()
+    save_voice(village_no=village, day_no=0, pl=sys_user, voice_type_key=type_system,
+               voice_str='{}人目、{} {}'.format(
+                    village.villageparticipant_set.filter(
+                        pl__system_user_flg=False, pl__dummy_user_flg=False, cancel_flg=False, delete_flg=False
+                    ).count() + 1, participant.description, participant.character_name),
+               system_voice_flg=True)
 
     # 第１発言登録
-    voice = VillageParticipantVoice()
-    voice.village_no = village
-    voice.village_participant = participant
-    voice.voice_type = MVoiceType.objects.get(pk=VOICE_TYPE_ID['normal'])
-
-    lastvoice = village.villageparticipantvoice_set.filter(voice_type_id=VOICE_TYPE_ID['normal']).order_by(
-        '-voice_number')
-    if lastvoice:
-        voice.voice_number = lastvoice[0].voice_number + 1
-    else:
-        voice.voice_number = 0
-
-    voice.voice_order = sys_voice.voice_order + 1
-    voice.use_point = 0
-    voice.voice = request.POST['voice']
-    voice.voice_datetime = datetime.now()
-    voice.delete_flg = False
-    voice.save()
+    save_voice(village_no=village, day_no=0, pl=participant, voice_type_key=MVoiceType.objects.get(pk=VoiceTypeId.NORMAL.value),
+               voice_str=request.POST['voice'])
 
     # 投票･能力行使データ作成
     ability = VillageParticipantExeAbility()

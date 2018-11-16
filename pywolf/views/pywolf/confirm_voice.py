@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from ...models.pywolf.masters import VOICE_TYPE_ID
+from pywolf.enums import VoiceTypeId
 
 
 def confirm_voice(request, village_no, day_no):
@@ -21,9 +21,9 @@ def confirm_voice(request, village_no, day_no):
                    'chip_width': chip_width,
                    'chip_height': chip_height,
                    'chip_pass': chip_pass,
-                   'VOICE_TYPE_ID_NORMAL': str(VOICE_TYPE_ID['normal']),
-                   'VOICE_TYPE_ID_WOLF': str(VOICE_TYPE_ID['wolf']),
-                   'VOICE_TYPE_ID_SELF': str(VOICE_TYPE_ID['self']),
-                   'VOICE_TYPE_ID_GRAVE': str(VOICE_TYPE_ID['grave']),
+                   'VOICE_TYPE_ID_NORMAL': str(VoiceTypeId.NORMAL.value),
+                   'VOICE_TYPE_ID_WOLF': str(VoiceTypeId.WOLF.value),
+                   'VOICE_TYPE_ID_SELF': str(VoiceTypeId.SELF.value),
+                   'VOICE_TYPE_ID_GRAVE': str(VoiceTypeId.GRAVE.value),
                    }
                   )

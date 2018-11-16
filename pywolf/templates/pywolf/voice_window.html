@@ -1,5 +1,5 @@
         {# 発言種別によって、窓の表示を変える #}
-        {% if voice.voice_type.id != VOICE_TYPE_ID.system %}
+        {% if voice.voice_type.id != VOICE_TYPE_ID.SYSTEM %}
             <dir style="display:table;">
                 <div style="display: table-cell; width:90px;">
                     {% load static %}
@@ -11,14 +11,14 @@
                     <dir style="font-size:11px;">
                         <a href="">{{ voice.voice_type.voice_type_symbol }}{{ voice.voice_number }}</a>:
                         {{ voice.village_participant.description }}&nbsp;{{ voice.village_participant.character_name }}
-                        {% if voice.voice_type_id == VOICE_TYPE_ID.self %}
+                        {% if voice.voice_type_id == VOICE_TYPE_ID.SELF %}
                             <span>&nbsp;【{{ voice.voice_type.voice_type_name }}】</span>
                         {% endif %}
                     </dir>
-                    {% if voice.voice_type.id == VOICE_TYPE_ID.normal %}<dir class="voice_window_common voice_window_normal">
-                    {% elif voice.voice_type.id == VOICE_TYPE_ID.wolf %}<dir class="voice_window_common voice_window_wolf">
-                    {% elif voice.voice_type.id == VOICE_TYPE_ID.self %}<dir class="voice_window_common voice_window_self">
-                    {% elif voice.voice_type.id == VOICE_TYPE_ID.grave %}<dir class="voice_window_common voice_window_grave">
+                    {% if voice.voice_type.id == VOICE_TYPE_ID.NORMAL %}<dir class="voice_window_common voice_window_normal">
+                    {% elif voice.voice_type.id == VOICE_TYPE_ID.WOLF %}<dir class="voice_window_common voice_window_wolf">
+                    {% elif voice.voice_type.id == VOICE_TYPE_ID.SELF %}<dir class="voice_window_common voice_window_self">
+                    {% elif voice.voice_type.id == VOICE_TYPE_ID.GRAVE %}<dir class="voice_window_common voice_window_grave">
                     {% endif %}
                         {{ voice.voice | linebreaksbr }}
                     </dir>

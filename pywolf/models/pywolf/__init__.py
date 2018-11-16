@@ -19,5 +19,4 @@ from .masters import MVoiceSettingSet
 from .masters import MVoiceSetting
 from .masters import MChipSet
 from .masters import MChip
-from .masters import VOICE_TYPE_ID
 

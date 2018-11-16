@@ -8,6 +8,13 @@ from ..pywolf.masters import MChip
 from ..pywolf.masters import MStyleSheetSet
 from ..pywolf.masters import MOrganizationSet
 
+from pywolf.enums import StartClass
+from pywolf.enums import UpdateInterval
+from pywolf.enums import VoiceNumberClass
+from pywolf.enums import VillageParticipantStatus
+from pywolf.enums import WinLoseClass
+from pywolf.enums import VillageStatus
+
 
 class PLAccount(models.Model):
     class Meta:
@@ -40,9 +47,9 @@ class Village(models.Model):
     village_name = models.CharField(verbose_name='村名', max_length=255)  # 村名
     description = models.TextField(verbose_name='村説明', blank=True)  # 村説明
     START_CLASS = (
-        (1, '自動'),
-        (2, '手動'),
-        (3, '定員'),
+        (StartClass.AUTO.value, '自動'),
+        (StartClass.MANUAL.value, '手動'),
+        (StartClass.LIMIT.value, '定員'),
     )
     start_class = models.SmallIntegerField(verbose_name='開始区分', choices=START_CLASS, default=1)  # 開始区分
     lowest_number = models.SmallIntegerField(verbose_name='最低人数', default=10,
@@ -56,17 +63,17 @@ class Village(models.Model):
     # 遅刻見学可否フラグ
     update_time = models.TimeField(verbose_name='更新時間')  # 更新時間
     UPDATE_INTERVAL = (
-        (24, '24時間'),
-        (48, '48時間'),
-        (72, '72時間'),
+        (UpdateInterval.hour24.value, '24時間'),
+        (UpdateInterval.hour48.value, '48時間'),
+        (UpdateInterval.hour72.value, '72時間'),
     )
     update_interval = models.SmallIntegerField(verbose_name='更新間隔', choices=UPDATE_INTERVAL, default=24)  # 更新間隔
     start_scheduled_date = models.DateField(verbose_name='村開始予定日')  # 村開始予定日
     abolition_date = models.DateField(verbose_name='廃村日')  # 廃村日
     # 編成隠蔽フラグ
     VOICE_NUMBER_CLASS = (
-        (1, "回数制"),
-        (2, "ポイント(pt)制"),
+        (VoiceNumberClass.COUNT.value, "回数制"),
+        (VoiceNumberClass.POINT.value, "ポイント(pt)制"),
     )
     voice_number_class = models.SmallIntegerField(verbose_name='発言数区分', choices=VOICE_NUMBER_CLASS, default=1)  # 発言数区分
     # 曖昧残喉フラグ
@@ -155,18 +162,18 @@ class VillageParticipant(models.Model):
         MPosition, verbose_name='役職', on_delete=models.PROTECT,
         related_name='%(class)s_position_id', null=True, blank=True)  # 役職
     STATUS = (
-        (0, "生存"),
-        (1, "処刑死"),
-        (2, "襲撃死"),
-        (9, "突然死"),
-        (10, "退村"),
+        (VillageParticipantStatus.SURVIVE.value, "生存"),
+        (VillageParticipantStatus.PUNISH_DEATH.value, "処刑死"),
+        (VillageParticipantStatus.ASSAULT_DEATH.value, "襲撃死"),
+        (VillageParticipantStatus.SUDDEN_DEATH.value, "突然死"),
+        (VillageParticipantStatus.LEAVE_VILLAGE.value, "退村"),
     )
     status = models.SmallIntegerField(verbose_name='状態', choices=STATUS, default=0)  # 状態
     WIN_LOSE_CLASS = (
-        (0, "未決着"),
-        (1, "勝利"),
-        (2, "敗北"),
-        (9, "突然死"),
+        (WinLoseClass.UNSETTLED.value, "未決着"),
+        (WinLoseClass.WIN.value, "勝利"),
+        (WinLoseClass.LOSE.value, "敗北"),
+        (WinLoseClass.SUDDEN_DEATH.value, "突然死"),
     )
     win_lose_class = models.SmallIntegerField(verbose_name='勝敗区分', choices=WIN_LOSE_CLASS, default=0)  # 勝敗区分
     memo = models.TextField(verbose_name='メモ', blank=True)  # メモ
@@ -189,11 +196,11 @@ class VillageProgress(models.Model):
     village_no = models.ForeignKey(Village, verbose_name='村', on_delete=models.PROTECT)  # 村番号
     day_no = models.SmallIntegerField(verbose_name='日数番号', default=0)  # 日数番号
     VILLAGE_STATUS = (
-        (0, "プロローグ"),
-        (1, "進行中"),
-        (2, "エピローグ"),
-        (3, "終了"),
-        (4, "廃村"),
+        (VillageStatus.PROLOGUE.value, "プロローグ"),
+        (VillageStatus.PROGRESS.value, "進行中"),
+        (VillageStatus.EPILOGUE.value, "エピローグ"),
+        (VillageStatus.END.value, "終了"),
+        (VillageStatus.ABOLITION.value, "廃村"),
     )
     village_status = models.SmallIntegerField(verbose_name='村状態', choices=VILLAGE_STATUS, default=0)  # 村状態
     next_update_datetime = models.DateTimeField(verbose_name='次回更新日時', null=True)

@@ -7,6 +7,10 @@ from ..models.pywolf.transactions import VillageParticipantExeAbility
 from ..models.pywolf.transactions import Village
 from ..models.pywolf.masters import MPosition
 
+from pywolf.enums import CampClass
+from pywolf.enums import WinLoseClass
+from pywolf.enums import VillageStatus
+from pywolf.enums import VillageParticipantStatus
 
 import random
 import datetime
@@ -14,7 +18,7 @@ import datetime
 
 def update(village_no, day_no):
     """更新処理"""
-    village_status = 1
+    village_status = VillageStatus.PROGRESS
     progress = VillageProgress.objects.latest()
 
     # ロック（すでに更新処理が始まってる）の場合は強制終了
@@ -25,11 +29,11 @@ def update(village_no, day_no):
         progress.save()
 
     # 終了判定
-    if progress.village_status == 2:  # エピからの更新で終了処理
+    if progress.village_status == VillageStatus.EPILOGUE:  # エピからの更新で終了処理
         end = VillageProgress()
         end.village_no = Village.objects.get(village_no=village_no)
         end.day_no = day_no + 1
-        end.village_status = 3
+        end.village_status = VillageStatus.END
         end.next_update_datetime = None
         end.update_processing_lock = False
         end.save()
@@ -39,7 +43,7 @@ def update(village_no, day_no):
         return
 
     # 占い処理
-    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=0)
+    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=VillageParticipantStatus.SURVIVE)
     for part in participant:
         ability = part.villageparticipantexeability_set.get(day_no=day_no)
         if MPosition.objects.get(pk=part.position_id).fortune_enable_flg:
@@ -54,14 +58,13 @@ def update(village_no, day_no):
     for part in participant:
         voice = part.villageparticipantvoice_set.filter(day_no=day_no)
         if not voice:
-            part.status = 9
+            part.status = VillageParticipantStatus.SUDDEN_DEATH
             part.save()
 
     # 決着判定処理１回目
     if settled(village_no):
         # エピローグ処理
-        village_status = 2
-        create_village_info(village_no, day_no, village_status)
+        create_village_info(village_no, day_no, VillageStatus.EPILOGUE)
         # ロック解除して終了
         progress.update_processing_lock = False
         progress.save()
@@ -72,7 +75,7 @@ def update(village_no, day_no):
     for part in participant:
         votes[part.pl_id] = 0
     # 突然死で地上参加者が減ってかもしれないため、再取得（悲しいね・・・）
-    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=0)
+    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=VillageParticipantStatus.SURVIVE)
     for part in participant:
         # 票集計
         vote = part.villageparticipantexeability_set.get(day_no=day_no)
@@ -84,14 +87,13 @@ def update(village_no, day_no):
         death = VillageParticipant.objects.get(pl=punish.keys[0])
     else:
         death = VillageParticipant.objects.get(pl=random.choice(punish).keys[0])
-    death.status = 1
+    death.status = VillageParticipantStatus.PUNISH_DEATH
     death.save()
 
     # 決着判定処理２回目
     if settled(village_no):
         # エピローグ処理
-        village_status = 2
-        create_village_info(village_no, day_no, village_status)
+        create_village_info(village_no, day_no, VillageStatus.EPILOGUE)
         # ロック解除して終了
         progress.update_processing_lock = False
         progress.save()
@@ -122,24 +124,28 @@ def update(village_no, day_no):
                 guard_success = True
 
     if not guard_success:
-        assault_target.status = 2
+        assault_target.status = VillageParticipantStatus.ASSAULT_DEATH
         assault_target.save()
 
     # 決着判定処理３回目
     if settled(village_no):
         # エピローグ処理
-        village_status = 2
-        create_village_info(village_no, day_no, village_status)
+        create_village_info(village_no, day_no, VillageStatus.EPILOGUE)
         # ロック解除して終了
         progress.update_processing_lock = False
         progress.save()
         return
 
     # 霊能処理は死んだ人を判定するから、最後に
-    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=0)
+    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=VillageParticipantStatus.SURVIVE)
     for part in participant:
         if MPosition.objects.get(pk=part.position_id).spirit_enable_flg:
-            deads = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status__in=[1, 2, 9])  # 死んだ人
+            deads = VillageParticipant.objects.filter(village_no=village_no,
+                                                      cancel_flg=False,
+                                                      status__in=[VillageParticipantStatus.PUNISH_DEATH,
+                                                                  VillageParticipantStatus.ASSAULT_DEATH,
+                                                                  VillageParticipantStatus.SUDDEN_DEATH
+                                                                  ])  # 死んだ人
             for d in deads:
                 # ひとまずは【襲撃可能な役職を人狼と判定】もっとベストな解決はあるか・・・？
                 if MPosition.objects.get(pk=d.position_id).assault_enable_flg:
@@ -166,9 +172,9 @@ def settled(village_no):
     village_num = 0
     wolf_num = 0
     # 処刑もしくは襲撃が行われて地上参加者が減っているため、再取得
-    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=0)
+    participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False, status=VillageParticipantStatus.SURVIVE)
     for part in participant:
-        if MPosition.objects.get(id=part.position_id).camp_class == 1:
+        if MPosition.objects.get(id=part.position_id).camp_class == CampClass.VILLAGE:
             village_num += 1
         else:
             wolf_num += 1
@@ -176,18 +182,22 @@ def settled(village_no):
     # 決着・勝敗判定
     win_class = 0
     if wolf_num == 0:  # 村人勝利
-        win_class = 1
+        win_class = CampClass.VILLAGE
     elif village_num <= wolf_num:  # 人狼勝利
-        win_class = 2
+        win_class = CampClass.WOLF
 
     # 決着なら勝敗を確定
     if win_class != 0:
         participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False)
         for part in participant:
-            if MPosition.objects.get(id=part.position_id).camp_class == win_class:
-                part.win_lose_class = 1
+            if part.status == VillageParticipantStatus.SUDDEN_DEATH:
+                # 突然死者は勝敗つけず・・・
+                part.win_lose_class = WinLoseClass.SUDDEN_DEATH
             else:
-                part.win_lose_class = 2
+                if MPosition.objects.get(id=part.position_id).camp_class == win_class:
+                    part.win_lose_class = WinLoseClass.WIN
+                else:
+                    part.win_lose_class = WinLoseClass.LOSE
             part.save()
         settled = True
 
@@ -229,8 +239,14 @@ def create_village_info(village_no, day_no, village_status):
             voice_status.voice_point_remain = v.voice_point
             voice_status.save()
 
+
+
     # 更新結果のシステムメッセージ作成
+
     if voice_status.day_no == 1:
+        # プロローグ＞１日目のみ希望役職から実際の配役決定
+
+
         # １日目のシステム発言・ダミー発言作成
         pass
 

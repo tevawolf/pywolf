@@ -12,10 +12,13 @@ from pywolf.models.pywolf.masters import MStyleSheetSet
 from pywolf.models.pywolf.masters import MVoiceSetting
 from pywolf.models.pywolf.masters import MVoiceType
 from pywolf.models.pywolf.masters import MPosition
-from pywolf.models.pywolf.masters import VOICE_TYPE_ID
 
 from pywolf.common.common import get_stylesheet
 from pywolf.common.common import get_login_info
+from pywolf.common.common import save_voice
+
+from pywolf.enums import VoiceTypeId
+from pywolf.enums import VillageStatus
 
 from datetime import date
 from datetime import datetime
@@ -29,14 +32,15 @@ def exe_create_village(request):
     stylesheet = get_stylesheet(request)
 
     # 上限オーバーチェック
-    if VillageProgress.objects.latest().exclide(Q(village_status=3) | Q(village_status=4)) > 4:
+    LIMIT = 4
+    if VillageProgress.objects.latest().exclide(
+            Q(village_status=VillageStatus.END) | Q(village_status=VillageStatus.ABOLITION)) > LIMIT:
         context = {
             'village': '',
             'error_message': '村の作成数の上限を超えたため、村の作成ができませんでした。<br/>申し訳ありませんが、ほかの村が終了するのをお待ちください。',
             'stylesheet': stylesheet,
         }
         return render(request, 'pywolf/create_village/complete_create_village.html', context)
-
 
     form = VillageForm(request.POST)
     if form.is_valid():
@@ -75,7 +79,7 @@ def exe_create_village(request):
         progress = VillageProgress()
         progress.village_no = new_village
         progress.day_no = 0
-        progress.village_status = 0
+        progress.village_status = VillageStatus.PROLOGUE
         progress.next_update_datetime = datetime(new_village.start_scheduled_date.year,
                                                  new_village.start_scheduled_date.month,
                                                  new_village.start_scheduled_date.day,
@@ -86,8 +90,6 @@ def exe_create_village(request):
         progress.update_processing_lock = False
         progress.save()
 
-        # 最初のシステム発言作成
-
         # システム参加者
         sys_user = VillageParticipant()
         sys_user.village_no = new_village
@@ -97,39 +99,19 @@ def exe_create_village(request):
         sys_user.wish_position = MPosition.objects.get(pk=1)
         sys_user.save()
 
-        type_system = MVoiceType.objects.get(pk=VOICE_TYPE_ID['system'])
+        type_system = MVoiceType.objects.get(pk=VoiceTypeId.SYSTEM)
 
-        sys_voice = VillageParticipantVoice()
-        sys_voice.village_no = new_village
-        sys_voice.day_no = 0
-        sys_voice.village_participant = sys_user
-        sys_voice.voice_number = 0
-        sys_voice.use_point = 0
-        sys_voice.voice_datetime = datetime.now()
-        sys_voice.good_pl = ''
-        sys_voice.voice_type = type_system
-        sys_voice.voice = new_village.system_message.msysmessage_set.get(sequence_number=0).message
-        sys_voice.system_voice_flg = True
-        sys_voice.voice_order = 0
-        sys_voice.save()
+        # 最初のシステム発言作成
+        save_voice(village_no=new_village, day_no=0, pl=sys_user, voice_type_key=type_system,
+                   voice_str=new_village.system_message.msysmessage_set.get(sequence_number=0).message,
+                   system_voice_flg=True)
+
         # 「1人目、○○○○○」
-        sys_voice1 = VillageParticipantVoice()
-        sys_voice1.village_no = new_village
-        sys_voice1.day_no = 0
-        sys_voice1.village_participant = sys_user
-        sys_voice1.voice_number = 1
-        sys_voice1.use_point = 0
-        sys_voice1.voice_datetime = datetime.now()
-        sys_voice1.good_pl = ''
-        sys_voice1.voice_type = type_system
-        sys_voice1.voice = '1人目、{} {}'.format(new_village.dummy_character.description, new_village.dummy_character.character_name)
-        sys_voice1.system_voice_flg = True
-        sys_voice1.voice_order = 1
-        sys_voice1.save()
+        save_voice(village_no=new_village, day_no=0, pl=sys_user, voice_type_key=type_system,
+                   voice_str='1人目、{} {}'.format(new_village.dummy_character.description, new_village.dummy_character.character_name),
+                   system_voice_flg=True)
 
         # 最初のダミー発言作成
-
-        # ダミー参加者
         dummy_user = VillageParticipant()
         dummy_user.village_no = new_village
         dummy_user.description = new_village.dummy_character.description
@@ -138,20 +120,9 @@ def exe_create_village(request):
         dummy_user.chip = new_village.dummy_character
         dummy_user.wish_position = MPosition.objects.get(pk=1)
         dummy_user.save()
-
-        dummy_voice = VillageParticipantVoice()
-        dummy_voice.village_no = new_village
-        dummy_voice.day_no = 0
-        dummy_voice.village_participant = dummy_user
-        dummy_voice.voice_number = 0
-        dummy_voice.use_point = 0
-        dummy_voice.voice_datetime = datetime.now()
-        dummy_voice.good_pl = ''
-        dummy_voice.voice_type = MVoiceType.objects.get(pk=VOICE_TYPE_ID['normal'])
-        dummy_voice.voice = new_village.dummy_character.dummy_voice_pro
-        dummy_voice.system_voice_flg = True
-        dummy_voice.voice_order = 2
-        dummy_voice.save()
+        save_voice(village_no=new_village, day_no=0, pl=dummy_user, voice_type_key=MVoiceType.objects.get(pk=VoiceTypeId.NORMAL),
+                   voice_str=new_village.dummy_character.dummy_voice_pro,
+                   system_voice_flg=True)
 
         context = {
             'village': new_village,

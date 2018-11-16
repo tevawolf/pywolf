@@ -1,5 +1,8 @@
 from django.db import models
 
+from pywolf.enums import CampClass
+from pywolf.enums import SpeechHearMode
+
 STATICFILES_DIRS = 'pywolf/static/'
 
 
@@ -11,8 +14,8 @@ class MPosition(models.Model):
 
     position_name = models.CharField(verbose_name='役職名称', max_length=100)  # 役職名称
     CAMP_CLASS = (
-        (1, "村人"),
-        (2, "人狼"),
+        (CampClass.VILLAGE.value, "村人"),
+        (CampClass.WOLF.value, "人狼"),
     )
     camp_class = models.SmallIntegerField(verbose_name='陣営区分', choices=CAMP_CLASS, default=1)  # 陣営区分
     vote_enable_flg = models.BooleanField(verbose_name='投票可否フラグ', default=True)  # 投票可否フラグ
@@ -69,9 +72,6 @@ class MOrganizationPositionNumber(models.Model):
     number = models.SmallIntegerField(verbose_name='人数')  # 人数
 
 
-VOICE_TYPE_ID = {"normal": 1, "wolf": 2, "self": 3, "system": 4, "grave": 5, }
-
-
 class MVoiceType(models.Model):
     class Meta:
         verbose_name = "発言種別"
@@ -98,10 +98,10 @@ class MPositionVoiceSetting(models.Model):
     position = models.ForeignKey(MPosition, verbose_name='役職', on_delete=models.CASCADE)  # 役職
     voice_type = models.ForeignKey(MVoiceType, verbose_name='発言種別', on_delete=models.CASCADE)  # 発言種別
     SPEECH_HEAR_MODE = (
-        (0, "発言・閲覧不可"),
-        (1, "発言不可・他人発言のみ閲覧可"),
-        (2, "発言可・自己発言のみ閲覧可"),
-        (3, "発言可・自己・他人発言ともに閲覧可"),
+        (SpeechHearMode.IMPOSSIBLE.value, "発言・閲覧不可"),
+        (SpeechHearMode.NOT_SPEECH_HEAR_OTHER.value, "発言不可・他人発言のみ閲覧可"),
+        (SpeechHearMode.SPEECH_HEAR_SELF, "発言可・自己発言のみ閲覧可"),
+        (SpeechHearMode.SPEECH_HEAR, "発言可・自己・他人発言ともに閲覧可"),
     )
     speech_hear_mode = models.SmallIntegerField(verbose_name='発言・閲覧モード', choices=SPEECH_HEAR_MODE, default=0)  # 発言・閲覧モード
     commentary = models.TextField(verbose_name='説明', blank=True)  # 説明
