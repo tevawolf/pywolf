@@ -133,7 +133,7 @@ def village(request, village_no, day_no):
                    'participant': login_participant,         # ログインユーザ参加者情報
                    'voice_settings': voice_settings,        # 役職別発言設定
                    'voice_type': voice_type,                # 発言種別
-                   'VOICE_TYPE_ID': VoiceTypeId,    # 発言種別ID Enum
+                   'VOICE_TYPE_ID': VoiceTypeId,            # 発言種別ID Enum
                    'SpeechHearMode': SpeechHearMode,        # 発言視聴モードEnum
                    'parts': parts,                           # 村参加者（投票・能力行使先）
                    'VillageParticipantStatus': VillageParticipantStatus,    # 村参加者ステータスEnum

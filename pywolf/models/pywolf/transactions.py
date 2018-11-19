@@ -76,6 +76,7 @@ class Village(models.Model):
         (VoiceNumberClass.POINT.value, "ポイント(pt)制"),
     )
     voice_number_class = models.SmallIntegerField(verbose_name='発言数区分', choices=VOICE_NUMBER_CLASS, default=1)  # 発言数区分
+    max_voice_line = models.IntegerField(verbose_name='発言最大行数', default=20)
     # 曖昧残喉フラグ
     # 発言促し回数
     # 発言促し回復区分

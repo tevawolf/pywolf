@@ -26,7 +26,6 @@ class EntryForm(forms.Form):
         self.fields['character_name'].widget.attrs = {'id': "entry_character_name", }
         self.fields['wish_position'].widget.attrs = {'id': "entry_wish_position", }
         self.fields['voice'].widget.attrs = {'id': "entry_voice",
-                                             'style': 'width:350px; height:150px; background: linear-gradient(135deg, #FFFFFF 60%, #DDDDDD 100%); border: solid 1.5px #222222;',
                                              'class': 'voice',
                                              }
         self.fields['into_password'].widget.attrs = {'id': "entry_into_password", }

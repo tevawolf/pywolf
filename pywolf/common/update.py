@@ -1,19 +1,21 @@
-from ..models.pywolf.transactions import VillageProgress
-from ..models.pywolf.transactions import VillageParticipant
-from ..models.pywolf.transactions import VillageParticipantExeAbilitySpiritResult
-from ..models.pywolf.transactions import VillageVoiceSetting
-from ..models.pywolf.transactions import VillageParticipantVoiceStatus
-from ..models.pywolf.transactions import VillageParticipantExeAbility
-from ..models.pywolf.transactions import Village
-from ..models.pywolf.masters import MPosition
+import datetime
+import random
+
+from django.core.exceptions import ObjectDoesNotExist
 
 from pywolf.enums import CampClass
-from pywolf.enums import WinLoseClass
-from pywolf.enums import VillageStatus
 from pywolf.enums import VillageParticipantStatus
-
-import random
-import datetime
+from pywolf.enums import VillageStatus
+from pywolf.enums import WinLoseClass
+from ..models.pywolf.masters import MPosition
+from ..models.pywolf.masters import MOrganizationPositionNumber
+from ..models.pywolf.transactions import Village
+from ..models.pywolf.transactions import VillageParticipant
+from ..models.pywolf.transactions import VillageParticipantExeAbility
+from ..models.pywolf.transactions import VillageParticipantExeAbilitySpiritResult
+from ..models.pywolf.transactions import VillageParticipantVoiceStatus
+from ..models.pywolf.transactions import VillageProgress
+from ..models.pywolf.transactions import VillageVoiceSetting
 
 
 def update(village_no, day_no):
@@ -245,7 +247,20 @@ def create_village_info(village_no, day_no, village_status):
 
     if voice_status.day_no == 1:
         # プロローグ＞１日目のみ希望役職から実際の配役決定
+        participant = VillageParticipant.objects.filter(village_no=village_no, cancel_flg=False)
 
+        positions = {}
+        try:
+            orgset = village.villageorganizationsetting_set.get()
+            # 村編成設定から設定役職を取得する
+            organizations = orgset.villageorganization_set.get()
+        except ObjectDoesNotExist:
+            # 編成マスタ情報から編成に含まれる役職を取得する
+            organizations = MOrganizationPositionNumber.objects.filter(organization_id=village.organization_setting)
+        for org in organizations:
+            position = MPosition.objects.get(pk=org.position_id_id)
+            positions[position.id] = ''
+        print(positions)
 
         # １日目のシステム発言・ダミー発言作成
         pass

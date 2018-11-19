@@ -137,6 +137,7 @@ class MVoiceSetting(models.Model):
     max_voice_point = models.SmallIntegerField(verbose_name='最大ポイント数', default=0)  # 最大ポイント数
 
 
+
 class MChipSet(models.Model):
     class Meta:
         verbose_name = "チップセット"

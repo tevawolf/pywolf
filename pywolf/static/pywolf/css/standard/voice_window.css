@@ -89,3 +89,8 @@
     top:10px;
     left:-10px;
 }
+#entry_voice {
+    width:350px;
+    height:150px;
+    background: linear-gradient(135deg, #FFFFFF 60%, #DDDDDD 100%); border: solid 1.5px #222222;
+}

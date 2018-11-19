@@ -40,6 +40,11 @@
             if (type == {{VOICE_TYPE_ID.NORMAL}}) {
                 $('#voice_input_area').removeClass();
                 $('#voice_input_area').addClass("voice voice_textarea_common voice_textarea_normal");
+                {% for vs in voice_settings %}
+                    {% if vs.voice_type.id == VOICE_TYPE_ID.NORMAL %}  {# 発言種別を自分の発言設定と照合 #}
+                        $('#max_str_length').text({{vs.max_str_length}} + '文字');
+                    {% endif %}
+                {% endfor %}
             } else if (type == {{VOICE_TYPE_ID.WOLF}}) {
                 $('#voice_input_area').removeClass();
                 $('#voice_input_area').addClass("voice voice_textarea_common voice_textarea_wolf");
@@ -234,7 +239,11 @@
                                     {% endif %}
                                     <textarea id="voice_input_area" class="voice voice_textarea_common voice_textarea_normal" name="voice" oninput="inputCheck();"></textarea></br>
                                     {# ★村の発言設定を役職ごとに取得して、制御★  #}
-                                    <span><span id="voice_input_number"></span>/200文字 <span id="voice_input_line"></span>/20行</span>
+                                    <span>
+                                        <span id="voice_input_number"></span>/<span id="max_str_length"></span>
+                                        &nbsp;
+                                        <span id="voice_input_line"></span>/<span id="max_voice_line">20</span>行
+                                    </span>
                                     <input type="hidden" name="chip_pass" value="{{participant.chip.get_path}}">
                                     <input type="hidden" name="chip_width" value="{{participant.chip.image_width}}">
                                     <input type="hidden" name="chip_height" value="{{participant.chip.image_height}}">
